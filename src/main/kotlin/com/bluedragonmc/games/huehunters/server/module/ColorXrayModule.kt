@@ -25,6 +25,7 @@ import net.minestom.server.network.packet.server.play.BlockChangePacket
 import net.minestom.server.network.packet.server.play.EntityMetaDataPacket
 import net.minestom.server.timer.TaskSchedule
 import org.spongepowered.configurate.ConfigurationNode
+import java.time.Duration
 
 abstract class ColorXrayModule(val radius: Int = 5) : GameModule() {
     private val disappearedBlocks = hashMapOf<Player, MutableSet<DisappearedBlock>>()
@@ -110,7 +111,7 @@ abstract class ColorXrayModule(val radius: Int = 5) : GameModule() {
     private val SMALL_SIZE = 0.4
 
     private fun playDisappearEffect(player: Player, block: DisappearedBlock) {
-        player.instance.setBlock(block.position, Block.BARRIER)
+        player.instance.setBlock(block.position, if(block.block.isSolid) Block.BARRIER else Block.AIR)
         player.sendPacket(BlockChangePacket(block.position, Block.AIR))
 
         val temp = Entity(EntityType.BLOCK_DISPLAY)
@@ -121,15 +122,22 @@ abstract class ColorXrayModule(val radius: Int = 5) : GameModule() {
         meta.transformationInterpolationStartDelta = -1
         meta.transformationInterpolationDuration = EFFECT_DURATION
 
-        temp.setInstance(player.instance, block.position)
-        MinecraftServer.getSchedulerManager().scheduleNextTick {
-            meta.setNotifyAboutChanges(false)
-            meta.translation = Vec(0.5 - SMALL_SIZE / 2, 0.5 - SMALL_SIZE / 2, 0.5 - SMALL_SIZE / 2)
-            meta.scale = Vec(SMALL_SIZE, SMALL_SIZE, SMALL_SIZE)
-            meta.setNotifyAboutChanges(true)
-            player.sendPacket(EntityMetaDataPacket(temp.entityId, mapOf(AbstractDisplayMeta.OFFSET + 4 to Metadata.Vector3(Vec.ZERO))))
+        temp.setInstance(player.instance, block.position).thenRun {
+            MinecraftServer.getSchedulerManager().scheduleNextTick {
+                meta.setNotifyAboutChanges(false)
+                meta.translation = Vec(0.5 - SMALL_SIZE / 2, 0.5 - SMALL_SIZE / 2, 0.5 - SMALL_SIZE / 2)
+                meta.scale = Vec(SMALL_SIZE, SMALL_SIZE, SMALL_SIZE)
+                meta.setNotifyAboutChanges(true)
+                player.sendPacket(
+                    EntityMetaDataPacket(
+                        temp.entityId, mapOf(
+                            AbstractDisplayMeta.OFFSET + 3 to Metadata.Vector3(Vec(0.5, 0.5, 0.5)),
+                            AbstractDisplayMeta.OFFSET + 4 to Metadata.Vector3(Vec.ZERO)
+                        )
+                    )
+                )
+            }
         }
-
         block.displayEntity = temp
     }
 
@@ -145,7 +153,7 @@ abstract class ColorXrayModule(val radius: Int = 5) : GameModule() {
         }
 
         MinecraftServer.getSchedulerManager().buildTask {
-            block.displayEntity?.remove()
+            block.displayEntity?.scheduleRemove(Duration.ofMillis(50))
             player.instance.setBlock(block.position, block.block)
         }.delay(TaskSchedule.tick(EFFECT_DURATION)).schedule()
     }
