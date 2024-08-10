@@ -8,9 +8,11 @@ import com.bluedragonmc.server.module.instance.InstanceModule
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.event.Event
 import net.minestom.server.event.EventNode
+import net.minestom.server.instance.Chunk
 import net.minestom.server.instance.Instance
 import net.minestom.server.instance.block.Block
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
+import java.util.concurrent.CompletableFuture
 import kotlin.math.max
 import kotlin.math.min
 
@@ -61,6 +63,17 @@ class BlockReplacerModule(private val instances: Iterable<Instance>) : GameModul
             val changes = mutableMapOf<Pos, Block>()
 
             replacements?.forEach { (boundingBox, find, replaceWith) ->
+                // Preload chunks
+                val futures = mutableListOf<CompletableFuture<Chunk>>()
+                for (x in range(boundingBox.start.blockX() / 16, boundingBox.end.blockX() / 16)) {
+                    for (z in range(boundingBox.start.blockZ() / 16, boundingBox.end.blockZ() / 16)) {
+                        futures += instance.loadChunk(x, z)
+                    }
+                }
+
+                CompletableFuture.allOf(*futures.toTypedArray()).join()
+
+                // Replace blocks
                 for (x in range(boundingBox.start.blockX(), boundingBox.end.blockX())) {
                     for (y in range(boundingBox.start.blockY(), boundingBox.end.blockY())) {
                         for (z in range(boundingBox.start.blockZ(), boundingBox.end.blockZ())) {
