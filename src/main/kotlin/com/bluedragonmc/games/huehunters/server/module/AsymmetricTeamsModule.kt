@@ -10,33 +10,28 @@ import com.bluedragonmc.server.module.minigame.TeamModule
 import com.bluedragonmc.server.utils.GameState
 import com.bluedragonmc.server.utils.surroundWithSeparators
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
 import net.minestom.server.event.Event
 import net.minestom.server.event.EventNode
 import net.minestom.server.event.player.PlayerSpawnEvent
 
 @DependsOn(TeamModule::class)
-class AsymmetricTeamsModule : GameModule() {
+class AsymmetricTeamsModule(val seekersTeam: TeamModule.Team, val hidersTeam: TeamModule.Team) : GameModule() {
+    private lateinit var parent: Game
     override fun initialize(parent: Game, eventNode: EventNode<Event>) {
+        this.parent = parent
         eventNode.addListener(GameStartEvent::class.java) { event ->
             // Make teams when game starts
             val players = mutableListOf(*parent.players.toTypedArray())
             val seeker = players.random()
             players.remove(seeker)
-            val seekersTeam = TeamModule.Team(
-                name = Component.text("Seekers", NamedTextColor.RED),
-                players = mutableListOf(seeker),
-                allowFriendlyFire = false
-            )
-            val hidersTeam = TeamModule.Team(
-                name = Component.text("Hiders", NamedTextColor.GREEN),
-                players = players,
-                allowFriendlyFire = false
-            )
+            seekersTeam.addPlayer(seeker)
+            players.forEach { player -> hidersTeam.addPlayer(player) }
             parent.getModule<TeamModule>().teams.add(seekersTeam)
             parent.getModule<TeamModule>().teams.add(hidersTeam)
             seeker.sendMessage(Component.text("You are a Seeker!"))
-            players.forEach { it.sendMessage("You are a Hider! Avoid the Seekers, or try to fight back!") }
+            hidersTeam.players.forEach { player ->
+                player.sendMessage("You are a Hider! Avoid the Seekers, or try to fight back!")
+            }
         }
         eventNode.addListener(PlayerSpawnEvent::class.java) { event ->
             if (parent.state == GameState.INGAME) {
@@ -45,5 +40,4 @@ class AsymmetricTeamsModule : GameModule() {
             }
         }
     }
-
 }

@@ -15,8 +15,6 @@ import net.kyori.adventure.text.Component
 import net.minestom.server.MinecraftServer
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent
 import net.minestom.server.event.player.PlayerSpawnEvent
-import net.minestom.server.item.ItemStack
-import net.minestom.server.item.Material
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -57,14 +55,6 @@ fun main() {
         if (event.instance == game.getInstance() && !game.players.contains(event.player)) {
             game.addPlayer(event.player, false)
             event.player.teleport(game.getModule<SpawnpointModule>().spawnpointProvider.getSpawnpoint(event.player))
-            event.player.inventory.addItemStack(ItemStack.of(Material.BROWN_TERRACOTTA))
-            event.player.inventory.addItemStack(ItemStack.of(Material.LIME_TERRACOTTA))
-            event.player.inventory.addItemStack(ItemStack.of(Material.WARPED_PLANKS))
-            event.player.inventory.addItemStack(ItemStack.of(Material.CHERRY_LOG))
-            event.player.inventory.addItemStack(ItemStack.of(Material.BRICKS))
-            event.player.inventory.addItemStack(ItemStack.of(Material.WAXED_COPPER_BLOCK))
-            event.player.inventory.addItemStack(ItemStack.of(Material.HAY_BLOCK))
-            event.player.inventory.addItemStack(ItemStack.of(Material.WHITE_TERRACOTTA))
         }
     }
 

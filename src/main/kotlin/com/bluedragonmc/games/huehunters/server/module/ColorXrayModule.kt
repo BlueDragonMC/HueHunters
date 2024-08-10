@@ -11,32 +11,24 @@ import net.minestom.server.event.player.PlayerTickEvent
 import net.minestom.server.instance.block.Block
 import net.minestom.server.item.Material
 import net.minestom.server.network.packet.server.play.BlockChangePacket
+import org.spongepowered.configurate.ConfigurationNode
 
 abstract class ColorXrayModule(val radius: Int = 5) : GameModule() {
     private val disappearedBlocks = hashMapOf<Player, MutableSet<DisappearedBlock>>()
+    private lateinit var baseConfigNode: ConfigurationNode
     final override fun initialize(parent: Game, eventNode: EventNode<Event>) {
         eventNode.addListener(PlayerTickEvent::class.java) { event ->
             val p = event.player
             if (!isXrayEnabled(p)) return@addListener
             val playerPos = p.position
             // Keys are colors, values are lists of blocks
-            val baseNode = parent.getModule<ConfigModule>().getConfig().node("xray")
-            val colors = baseNode.childrenMap()
+            baseConfigNode = parent.getModule<ConfigModule>().getConfig().node("xray")
+
             // get the color of what you are holding
-            var holdingColor: String? = null
-            for ((color, items) in colors) {
-                val materials = items.getList(Material::class.java) ?: continue
-                for (item in materials) {
-                    if (item == p.itemInMainHand.material()) {
-                        holdingColor = color.toString()
-                        break
-                    }
-                    if (holdingColor != null) break
-                }
-            }
-            if (holdingColor == null) return@addListener // Not holding a valid color
+            val holdingColor = getHoldingColor(p) ?: return@addListener
+
             // All the blocks in the same color that you're holding - these blocks should disappear
-            val disappearingMaterials = baseNode.node(holdingColor).getList(Material::class.java) ?: return@addListener
+            val disappearingMaterials = getColorBlocks(holdingColor) ?: return@addListener
 
             // Figure out which blocks should be invisible
             val blockX = playerPos.blockX()
@@ -74,6 +66,24 @@ abstract class ColorXrayModule(val radius: Int = 5) : GameModule() {
             }
         }
     }
+
+    fun getHoldingColor(player: Player): String? {
+        val colors = baseConfigNode.childrenMap()
+        for ((color, items) in colors) {
+            val materials = items.getList(Material::class.java) ?: continue
+            for (item in materials) {
+                if (item == player.itemInMainHand.material()) {
+                    return color.toString()
+                }
+            }
+        }
+        return null
+    }
+
+    /**
+     * Returns all the blocks associated with the given color, based on the config file.
+     */
+    fun getColorBlocks(color: String) = baseConfigNode.node(color).getList(Material::class.java)
 
     fun disappear(player: Player, block: DisappearedBlock) {
         if (!disappearedBlocks.containsKey(player)) disappearedBlocks[player] = mutableSetOf()
