@@ -13,14 +13,12 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    implementation("com.github.BlueDragonMC.Server:common:e616fb55f0")
+    implementation("com.github.BlueDragonMC.Server:common:e616fb55f0") {
+        exclude(group = "org.tinylog")
+    }
     implementation("net.minestom:minestom-snapshots:461c56e749")
     implementation("org.spongepowered:configurate-yaml:4.1.2")
-//    implementation("org.slf4j:slf4j-simple:2.0.13")
 
-//    implementation("org.tinylog:tinylog-api-kotlin:2.6.2")
-//    implementation("org.tinylog:tinylog-impl:2.6.2")
-//    implementation("org.tinylog:slf4j-tinylog:2.6.2")
     implementation("ch.qos.logback:logback-classic:1.4.12")
 }
 
