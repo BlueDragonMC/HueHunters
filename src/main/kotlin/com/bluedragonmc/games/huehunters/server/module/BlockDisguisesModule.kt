@@ -29,6 +29,9 @@ import net.minestom.server.tag.Tag
 
 // TODO make this a standard module in BlueDragon's common library
 
+// TODO: if we need to make movement smoother, we can combine a block display + an interaction entity (https://minecraft.wiki/w/Interaction)
+// the block display has no hitbox, but an Interaction does
+
 @DependsOn(ColorXrayModule::class)
 class BlockDisguisesModule(val hidersTeam: TeamModule.Team) : GameModule() {
     private lateinit var parent: Game
@@ -100,7 +103,6 @@ class BlockDisguisesModule(val hidersTeam: TeamModule.Team) : GameModule() {
      */
     private fun disguisePlayerIfAllowed(player: Player, heldSlot: Byte = player.heldSlot) {
         if (parent.getModule<TeamModule>().getTeam(player) == hidersTeam) {
-            println("Player is on hiders team")
             disguisePlayerFromHand(player, heldSlot)
         }
     }
