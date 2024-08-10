@@ -67,12 +67,12 @@ abstract class ColorXrayModule(val radius: Int = 5) : GameModule() {
         }
     }
 
-    fun getHoldingColor(player: Player): String? {
+    fun getHoldingColor(player: Player, heldSlot: Byte = player.heldSlot): String? {
         val colors = baseConfigNode.childrenMap()
         for ((color, items) in colors) {
             val materials = items.getList(Material::class.java) ?: continue
             for (item in materials) {
-                if (item == player.itemInMainHand.material()) {
+                if (item == player.inventory.getItemStack(heldSlot.toInt()).material()) {
                     return color.toString()
                 }
             }

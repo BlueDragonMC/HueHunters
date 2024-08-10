@@ -15,7 +15,7 @@ import net.minestom.server.entity.EntityType
 import net.minestom.server.entity.LivingEntity
 import net.minestom.server.entity.Player
 import net.minestom.server.entity.attribute.Attribute
-import net.minestom.server.entity.metadata.display.BlockDisplayMeta
+import net.minestom.server.entity.metadata.other.FallingBlockMeta
 import net.minestom.server.event.Event
 import net.minestom.server.event.EventNode
 import net.minestom.server.event.entity.EntityAttackEvent
@@ -41,7 +41,7 @@ class BlockDisguisesModule(val hidersTeam: TeamModule.Team) : GameModule() {
             disguisePlayerIfAllowed(event.player)
         }
         eventNode.addListener(PlayerChangeHeldSlotEvent::class.java) { event ->
-            disguisePlayerIfAllowed(event.player)
+            disguisePlayerIfAllowed(event.player, event.slot)
         }
 
         eventNode.addListener(PlayerMoveEvent::class.java) { event ->
@@ -98,20 +98,20 @@ class BlockDisguisesModule(val hidersTeam: TeamModule.Team) : GameModule() {
     /**
      * Calls [disguisePlayerFromHand] only if the player is on the [hidersTeam].
      */
-    private fun disguisePlayerIfAllowed(player: Player) {
+    private fun disguisePlayerIfAllowed(player: Player, heldSlot: Byte = player.heldSlot) {
         if (parent.getModule<TeamModule>().getTeam(player) == hidersTeam) {
             println("Player is on hiders team")
-            disguisePlayerFromHand(player)
+            disguisePlayerFromHand(player, heldSlot)
         }
     }
 
     /**
      * Turns the player into a random block whose color matches the item in the player's hand.
      */
-    private fun disguisePlayerFromHand(player: Player) {
+    private fun disguisePlayerFromHand(player: Player, heldSlot: Byte = player.heldSlot) {
         disguises[player]?.remove()
         val colorXrayModule = parent.getModule<ColorXrayModule>()
-        val color = colorXrayModule.getHoldingColor(player)
+        val color = colorXrayModule.getHoldingColor(player, heldSlot)
         if (color == null) {
             undisguisePlayer(player)
             return
@@ -125,9 +125,9 @@ class BlockDisguisesModule(val hidersTeam: TeamModule.Team) : GameModule() {
     }
 
     private fun disguisePlayer(player: Player, block: Block) {
-        val entity = Entity(EntityType.BLOCK_DISPLAY)
-        val meta = entity.entityMeta as BlockDisplayMeta
-        meta.setBlockState(block)
+        val entity = Entity(EntityType.FALLING_BLOCK)
+        val meta = entity.entityMeta as FallingBlockMeta
+        meta.block = (block)
         disguisePlayer(player, entity)
     }
 
