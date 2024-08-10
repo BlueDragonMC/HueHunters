@@ -40,13 +40,18 @@ class BlockReplacerModule(private val instances: Iterable<Instance>) : GameModul
         val boundingBox: BoundingBox,
         val find: List<Block>,
         val replaceWith: List<Block>,
-    )
+    ) {
+        @Suppress("unused") // Configurate requires a zero-argument constructor for serializable objects
+        constructor() : this(BoundingBox(), emptyList(), emptyList())
+    }
 
     @ConfigSerializable
     data class BoundingBox(
         val start: Pos,
         val end: Pos
-    )
+    ) {
+        constructor() : this(Pos(0.0, 0.0,0.0), Pos(0.0,0.0,0.0))
+    }
 
     override fun initialize(parent: Game, eventNode: EventNode<Event>) {
         val cm = parent.getModule<ConfigModule>()
