@@ -1,9 +1,9 @@
 package com.bluedragonmc.games.huehunters.server
 
+import com.bluedragonmc.games.huehunters.HHPlayer
 import com.bluedragonmc.games.huehunters.HueHunters
 import com.bluedragonmc.games.huehunters.server.command.StartCommand
 import com.bluedragonmc.server.ALT_COLOR_1
-import com.bluedragonmc.server.CustomPlayer
 import com.bluedragonmc.server.api.IncomingRPCHandlerStub
 import com.bluedragonmc.server.api.OutgoingRPCHandlerStub
 import com.bluedragonmc.server.api.PermissionManager
@@ -27,7 +27,7 @@ fun main() {
     val server = MinecraftServer.init()
     val globalEventHandler = MinecraftServer.getGlobalEventHandler()
 
-    MinecraftServer.getConnectionManager().setPlayerProvider(::CustomPlayer)
+    MinecraftServer.getConnectionManager().setPlayerProvider(::HHPlayer)
 
     Messaging.initializeIncoming(IncomingRPCHandlerStub())
     Messaging.initializeOutgoing(OutgoingRPCHandlerStub())

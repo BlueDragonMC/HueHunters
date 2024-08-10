@@ -13,7 +13,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    implementation("com.github.BlueDragonMC.Server:common:c4d386c16e")
+    implementation("com.github.BlueDragonMC.Server:common:e616fb55f0")
     implementation("net.minestom:minestom-snapshots:461c56e749")
     implementation("org.spongepowered:configurate-yaml:4.1.2")
 //    implementation("org.slf4j:slf4j-simple:2.0.13")
