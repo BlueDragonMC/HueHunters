@@ -2,6 +2,7 @@ package com.bluedragonmc.games.huehunters
 
 import com.bluedragonmc.games.huehunters.server.module.AsymmetricTeamsModule
 import com.bluedragonmc.games.huehunters.server.module.BlockDisguisesModule
+import com.bluedragonmc.games.huehunters.server.module.BlockReplacerModule
 import com.bluedragonmc.games.huehunters.server.module.ColorXrayModule
 import com.bluedragonmc.server.Game
 import com.bluedragonmc.server.event.GameStartEvent
@@ -33,7 +34,9 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
         use(ConfigModule("huehunters.yml"))
         use(DoorsModule())
         use(FallDamageModule())
-        use(InstanceContainerModule())
+        use(InstanceContainerModule()) { module ->
+            use(BlockReplacerModule(module.getRequiredInstances()))
+        }
         use(InventoryPermissionsModule(allowDropItem = false, allowMoveItem = false))
         use(MOTDModule(Component.text("Hiders disguised as blocks must avoid\n")))
         use(NaturalRegenerationModule())

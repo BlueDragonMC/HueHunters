@@ -61,3 +61,31 @@ xray:
     - minecraft:glass
     - minecraft:furnace
     - minecraft:polished_blackstone_bricks
+replacements:
+  - bounding-box:
+      start: -20, 68, -20
+      end: 20, 72, 20
+    find:
+      - minecraft:purple_glazed_terracotta
+    replace-with:
+      - minecraft:brown_concrete
+      - minecraft:green_concrete
+      - minecraft:blue_concrete
+      - minecraft:purple_concrete
+      - minecraft:red_concrete
+      - minecraft:orange_concrete
+      - minecraft:yellow_concrete
+      - minecraft:gray_concrete
+  - bounding-box:
+      start: -20, 68, -20
+      end: 20, 72, 20
+    find:
+      - minecraft:yellow_glazed_terracotta
+    replace-with:
+      - minecraft:tnt
+      - minecraft:waxed_copper_block
+      - minecraft:blue_shulker_box
+      - minecraft:melon_block
+      - minecraft:birch_wood
+      - minecraft:crafting_table
+      - minecraft:hay_block
