@@ -1,0 +1,72 @@
+package com.bluedragonmc.games.huehunters.server
+
+import com.bluedragonmc.games.huehunters.HueHunters
+import com.bluedragonmc.games.huehunters.server.command.StartCommand
+import com.bluedragonmc.server.ALT_COLOR_1
+import com.bluedragonmc.server.CustomPlayer
+import com.bluedragonmc.server.api.IncomingRPCHandlerStub
+import com.bluedragonmc.server.api.OutgoingRPCHandlerStub
+import com.bluedragonmc.server.api.PermissionManager
+import com.bluedragonmc.server.api.PlayerMeta
+import com.bluedragonmc.server.module.minigame.SpawnpointModule
+import com.bluedragonmc.server.service.Messaging
+import com.bluedragonmc.server.service.Permissions
+import net.kyori.adventure.text.Component
+import net.minestom.server.MinecraftServer
+import net.minestom.server.event.player.AsyncPlayerConfigurationEvent
+import net.minestom.server.event.player.PlayerSpawnEvent
+import net.minestom.server.item.ItemStack
+import net.minestom.server.item.Material
+import org.slf4j.LoggerFactory
+import java.util.*
+
+private val logger = LoggerFactory.getLogger("HueHuntersMain")
+
+fun main() {
+    logger.info("Hello!")
+    val server = MinecraftServer.init()
+    val globalEventHandler = MinecraftServer.getGlobalEventHandler()
+
+    MinecraftServer.getConnectionManager().setPlayerProvider(::CustomPlayer)
+
+    Messaging.initializeIncoming(IncomingRPCHandlerStub())
+    Messaging.initializeOutgoing(OutgoingRPCHandlerStub())
+
+    Permissions.initialize(object: PermissionManager {
+        override fun getMetadata(player: UUID): PlayerMeta = PlayerMeta(
+            prefix = Component.empty(),
+            suffix = Component.empty(),
+            primaryGroup = "default",
+            rankColor = ALT_COLOR_1
+        )
+
+        override fun hasPermission(player: UUID, node: String): Boolean = true
+
+    })
+
+    MinecraftServer.getCommandManager().register(StartCommand("start"))
+
+    val game = HueHunters(mapName = "Multiverse")
+    game.init()
+
+    globalEventHandler.addListener(AsyncPlayerConfigurationEvent::class.java) { event ->
+        event.spawningInstance = game.getInstance()
+    }
+
+    globalEventHandler.addListener(PlayerSpawnEvent::class.java) { event ->
+        if (event.instance == game.getInstance() && !game.players.contains(event.player)) {
+            game.addPlayer(event.player, false)
+            event.player.teleport(game.getModule<SpawnpointModule>().spawnpointProvider.getSpawnpoint(event.player))
+            event.player.inventory.addItemStack(ItemStack.of(Material.BROWN_TERRACOTTA))
+            event.player.inventory.addItemStack(ItemStack.of(Material.LIME_TERRACOTTA))
+            event.player.inventory.addItemStack(ItemStack.of(Material.WARPED_PLANKS))
+            event.player.inventory.addItemStack(ItemStack.of(Material.CHERRY_LOG))
+            event.player.inventory.addItemStack(ItemStack.of(Material.BRICKS))
+            event.player.inventory.addItemStack(ItemStack.of(Material.WAXED_COPPER_BLOCK))
+            event.player.inventory.addItemStack(ItemStack.of(Material.HAY_BLOCK))
+            event.player.inventory.addItemStack(ItemStack.of(Material.WHITE_TERRACOTTA))
+        }
+    }
+
+    server.start("0.0.0.0", 25565)
+}

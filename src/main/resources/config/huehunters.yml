@@ -1,0 +1,63 @@
+# Brown, green, blue, purple, red, orange, yellow, gray
+xray:
+  brown:
+    - minecraft:brown_terracotta
+    - minecraft:gray_terracotta
+    - minecraft:black_terracotta
+    - minecraft:oak_log
+    - minecraft:oak_planks
+    - minecraft:spruce_stairs
+    - minecraft:spruce_fence
+    - minecraft:stripped_spruce_wood
+    - minecraft:crafting_table
+  green:
+    - minecraft:lime_terracotta
+    - minecraft:green_terracotta
+    - minecraft:oak_leaves
+    - minecraft:spruce_leaves
+    - minecraft:birch_leaves
+    - minecraft:jungle_leaves
+    - minecraft:acacia_leaves
+    - minecraft:dark_oak_leaves
+    - minecraft:mangrove_leaves
+    - minecraft:azalea_leaves
+    - minecraft:flowering_azalea_leaves
+    - minecraft:moss_block
+    - minecraft:moss_carpet
+    - minecraft:short_grass
+    - minecraft:tall_grass
+    - minecraft:cactus
+    - minecraft:mossy_stone_bricks
+    - minecraft:mossy_cobblestone
+  blue:
+    - minecraft:warped_planks
+    - minecraft:warped_slab
+    - minecraft:warped_door
+    - minecraft:blue_bed
+    - minecraft:light_blue_bed
+    - minecraft:soul_lantern
+  purple:
+    - minecraft:cherry_log
+    - minecraft:cherry_planks
+    - minecraft:cherry_slab
+    - minecraft:cherry_door
+    - minecraft:peony
+  red:
+    - minecraft:bricks
+    - minecraft:nether_brick_fence
+  orange:
+    - minecraft:waxed_copper_block
+    - minecraft:flower_pot
+    - minecraft:lantern
+    - minecraft:glowstone
+  yellow:
+    - minecraft:hay_block
+    - minecraft:birch_planks
+    - minecraft:birch_log
+  gray:
+    - minecraft:white_terracotta
+    - minecraft:quartz_bricks
+    - minecraft:glass_pane
+    - minecraft:glass
+    - minecraft:furnace
+    - minecraft:polished_blackstone_bricks
