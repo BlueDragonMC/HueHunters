@@ -35,7 +35,7 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
         use(DoorsModule())
         use(FallDamageModule())
         use(InstanceContainerModule()) { module ->
-            use(BlockReplacerModule(module.getRequiredInstances()))
+            use(BlockReplacerModule(getOwnedInstances()))
         }
         use(InventoryPermissionsModule(allowDropItem = false, allowMoveItem = false))
         use(MOTDModule(Component.text("Hiders disguised as blocks must avoid\n")))

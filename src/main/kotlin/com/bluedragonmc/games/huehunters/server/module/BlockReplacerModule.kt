@@ -13,6 +13,8 @@ import net.minestom.server.instance.Instance
 import net.minestom.server.instance.block.Block
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
 import java.util.concurrent.CompletableFuture
+import kotlin.math.ceil
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 
@@ -58,21 +60,18 @@ class BlockReplacerModule(private val instances: Iterable<Instance>) : GameModul
     override fun initialize(parent: Game, eventNode: EventNode<Event>) {
         val cm = parent.getModule<ConfigModule>()
         val replacements = cm.getConfig().node("replacements").getList(Replacement::class.java)
-
         instances.forEach { instance ->
             val changes = mutableMapOf<Pos, Block>()
-
             replacements?.forEach { (boundingBox, find, replaceWith) ->
                 // Preload chunks
                 val futures = mutableListOf<CompletableFuture<Chunk>>()
-                for (x in range(boundingBox.start.blockX() / 16, boundingBox.end.blockX() / 16)) {
-                    for (z in range(boundingBox.start.blockZ() / 16, boundingBox.end.blockZ() / 16)) {
+                for (x in range(floor(boundingBox.start.blockX() / 16.0).toInt(), ceil(boundingBox.end.blockX() / 16.0).toInt())) {
+                    for (z in range(floor(boundingBox.start.blockZ() / 16.0).toInt(), ceil(boundingBox.end.blockZ() / 16.0).toInt())) {
                         futures += instance.loadChunk(x, z)
                     }
                 }
 
                 CompletableFuture.allOf(*futures.toTypedArray()).join()
-
                 // Replace blocks
                 for (x in range(boundingBox.start.blockX(), boundingBox.end.blockX())) {
                     for (y in range(boundingBox.start.blockY(), boundingBox.end.blockY())) {
