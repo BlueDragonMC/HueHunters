@@ -26,7 +26,7 @@ xray:
     - minecraft:spruce_leaves
     - minecraft:mangrove_leaves
     - minecraft:green_concrete
-    - minecraft:melon_block
+    - minecraft:melon
     - minecraft:waxed_oxidized_cut_copper_slab
   white:
     - minecraft:white_concrete

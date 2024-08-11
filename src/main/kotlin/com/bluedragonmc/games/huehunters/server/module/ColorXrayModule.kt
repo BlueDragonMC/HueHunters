@@ -31,12 +31,13 @@ abstract class ColorXrayModule(val radius: Int = 5) : GameModule() {
     private val disappearedBlocks = hashMapOf<Player, MutableSet<DisappearedBlock>>()
     private lateinit var baseConfigNode: ConfigurationNode
     final override fun initialize(parent: Game, eventNode: EventNode<Event>) {
+        // Keys are colors, values are lists of blocks
+        baseConfigNode = parent.getModule<ConfigModule>().getConfig().node("xray")
+
         eventNode.addListener(PlayerTickEvent::class.java) { event ->
             val p = event.player
             if (!isXrayEnabled(p)) return@addListener
             val playerPos = p.position
-            // Keys are colors, values are lists of blocks
-            baseConfigNode = parent.getModule<ConfigModule>().getConfig().node("xray")
 
             // get the color of what you are holding
             val holdingColor = getHoldingColor(p) ?: return@addListener
@@ -97,7 +98,7 @@ abstract class ColorXrayModule(val radius: Int = 5) : GameModule() {
     /**
      * Returns all the blocks associated with the given color, based on the config file.
      */
-    fun getColorBlocks(color: String) = baseConfigNode.node(color).getList(Material::class.java)
+    fun getColorBlocks(color: String) = baseConfigNode.node(color).getList(Material::class.java)?.filterNotNull()
 
     /**
      * Returns a set of every block associated with any color, based on the config file.
