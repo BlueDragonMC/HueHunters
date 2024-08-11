@@ -99,6 +99,17 @@ abstract class ColorXrayModule(val radius: Int = 5) : GameModule() {
      */
     fun getColorBlocks(color: String) = baseConfigNode.node(color).getList(Material::class.java)
 
+    /**
+     * Returns a set of every block associated with any color, based on the config file.
+     */
+    fun getDisappearableBlocks(): MutableSet<Material> {
+        val blocks = mutableSetOf<Material>()
+        baseConfigNode.childrenMap().forEach { (color, materials) ->
+            blocks.addAll(materials.getList(Material::class.java) ?: return@forEach)
+        }
+        return blocks
+    }
+
     fun disappear(player: Player, block: DisappearedBlock) {
         if (!disappearedBlocks.containsKey(player)) disappearedBlocks[player] = mutableSetOf()
         val blockSet = disappearedBlocks[player]!!

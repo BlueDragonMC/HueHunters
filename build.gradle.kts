@@ -13,7 +13,7 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-    implementation("com.github.BlueDragonMC.Server:common:e616fb55f0") {
+    implementation("com.github.BlueDragonMC.Server:common:67e9260fe2") {
         exclude(group = "org.tinylog")
     }
     implementation("net.minestom:minestom-snapshots:461c56e749")

@@ -3,6 +3,7 @@ package com.bluedragonmc.games.huehunters.server.module
 import com.bluedragonmc.server.BRAND_COLOR_PRIMARY_2
 import com.bluedragonmc.server.Game
 import com.bluedragonmc.server.event.GameStartEvent
+import com.bluedragonmc.server.event.TeamAssignedEvent
 import com.bluedragonmc.server.module.DependsOn
 import com.bluedragonmc.server.module.GameModule
 import com.bluedragonmc.server.module.minigame.SpectatorModule
@@ -13,6 +14,7 @@ import net.kyori.adventure.text.Component
 import net.minestom.server.event.Event
 import net.minestom.server.event.EventNode
 import net.minestom.server.event.player.PlayerSpawnEvent
+import net.minestom.server.network.packet.server.play.TeamsPacket
 
 @DependsOn(TeamModule::class)
 class AsymmetricTeamsModule(val seekersTeam: TeamModule.Team, val hidersTeam: TeamModule.Team) : GameModule() {
@@ -28,10 +30,18 @@ class AsymmetricTeamsModule(val seekersTeam: TeamModule.Team, val hidersTeam: Te
             players.forEach { player -> hidersTeam.addPlayer(player) }
             parent.getModule<TeamModule>().teams.add(seekersTeam)
             parent.getModule<TeamModule>().teams.add(hidersTeam)
-            seeker.sendMessage(Component.text("You are a Seeker!"))
             hidersTeam.players.forEach { player ->
+                parent.callEvent(TeamAssignedEvent(parent, player))
                 player.sendMessage("You are a Hider! Avoid the Seekers, or try to fight back!")
             }
+            seekersTeam.players.forEach {
+                player -> parent.callEvent(TeamAssignedEvent(parent, player))
+                player.sendMessage("You are a Seeker! Use your colors to track down and kill the Hiders!")
+            }
+            hidersTeam.register()
+            seekersTeam.register()
+            hidersTeam.scoreboardTeam.updateNameTagVisibility(TeamsPacket.NameTagVisibility.HIDE_FOR_OTHER_TEAMS)
+            seekersTeam.scoreboardTeam.updateNameTagVisibility(TeamsPacket.NameTagVisibility.HIDE_FOR_OTHER_TEAMS)
         }
         eventNode.addListener(PlayerSpawnEvent::class.java) { event ->
             if (parent.state == GameState.INGAME) {

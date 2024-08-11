@@ -44,7 +44,7 @@ fun main() {
 
     MinecraftServer.getCommandManager().register(StartCommand("start"))
 
-    val game = HueHunters(mapName = "Multiverse")
+    val game = HueHunters(mapName = "Warehouse")
     game.init()
 
     globalEventHandler.addListener(AsyncPlayerConfigurationEvent::class.java) { event ->

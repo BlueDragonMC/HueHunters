@@ -1,66 +1,60 @@
-# Brown, green, blue, purple, red, orange, yellow, gray
 xray:
-  brown:
-    - minecraft:brown_terracotta
-    - minecraft:gray_terracotta
-    - minecraft:black_terracotta
-    - minecraft:oak_log
-    - minecraft:oak_planks
-    - minecraft:spruce_stairs
-    - minecraft:spruce_fence
-    - minecraft:stripped_spruce_wood
-    - minecraft:crafting_table
-  green:
-    - minecraft:lime_terracotta
-    - minecraft:green_terracotta
-    - minecraft:oak_leaves
-    - minecraft:spruce_leaves
-    - minecraft:birch_leaves
-    - minecraft:jungle_leaves
-    - minecraft:acacia_leaves
-    - minecraft:dark_oak_leaves
-    - minecraft:mangrove_leaves
-    - minecraft:azalea_leaves
-    - minecraft:flowering_azalea_leaves
-    - minecraft:moss_block
-    - minecraft:moss_carpet
-    - minecraft:short_grass
-    - minecraft:tall_grass
-    - minecraft:cactus
-    - minecraft:mossy_stone_bricks
-    - minecraft:mossy_cobblestone
-  blue:
-    - minecraft:warped_planks
-    - minecraft:warped_slab
-    - minecraft:warped_door
-    - minecraft:blue_bed
-    - minecraft:light_blue_bed
-    - minecraft:soul_lantern
-  purple:
-    - minecraft:cherry_log
-    - minecraft:cherry_planks
-    - minecraft:cherry_slab
-    - minecraft:cherry_door
-    - minecraft:peony
   red:
-    - minecraft:bricks
-    - minecraft:nether_brick_fence
+    - minecraft:red_concrete
+    - minecraft:red_wool
+    - minecraft:crimson_stem
+    - minecraft:tnt
   orange:
+    - minecraft:orange_concrete
+    - minecraft:orange_wool
     - minecraft:waxed_copper_block
-    - minecraft:flower_pot
-    - minecraft:lantern
-    - minecraft:glowstone
+  blue:
+    - minecraft:blue_concrete
+    - minecraft:blue_wool
+    - minecraft:sculk
+    - minecraft:blue_shulker_box
+    - minecraft:stripped_warped_hyphae
+    - minecraft:light_blue_stained_glass
+  green:
+    - minecraft:green_concrete
+    - minecraft:green_wool
+    - minecraft:lime_concrete
+    - minecraft:lime_wool
+    - minecraft:slime_block
+    - minecraft:spruce_leaves
+    - minecraft:mangrove_leaves
+    - minecraft:green_concrete
+    - minecraft:melon_block
+    - minecraft:waxed_oxidized_cut_copper_slab
+  white:
+    - minecraft:white_concrete
+    - minecraft:white_wool
+    - minecraft:white_glazed_terracotta
+    - minecraft:birch_wood
+    - minecraft:cobweb
+    - minecraft:iron_door
+    - minecraft:iron_bars
+  brown:
+    - minecraft:brown_concrete
+    - minecraft:brown_wool
+    - minecraft:crafting_table
+    - minecraft:spruce_trapdoor
+    - minecraft:spruce_log
+    - minecraft:brown_concrete_powder
+    - minecraft:mangrove_wood
+    - minecraft:bookshelf
+    - minecraft:oak_slab
+    - minecraft:oak_stairs
+    - minecraft:lectern
+    - minecraft:ladder
   yellow:
+    - minecraft:yellow_concrete
+    - minecraft:yellow_wool
     - minecraft:hay_block
-    - minecraft:birch_planks
-    - minecraft:birch_log
-  gray:
-    - minecraft:white_terracotta
-    - minecraft:quartz_bricks
-    - minecraft:glass_pane
-    - minecraft:glass
-    - minecraft:furnace
-    - minecraft:polished_blackstone_bricks
+    - minecraft:sand
+  purple:
+    - minecraft:purple_concrete
+    - minecraft:purple_wool
 replacements:
   - bounding-box:
       start: -20, 68, -20
@@ -72,10 +66,10 @@ replacements:
       - minecraft:green_concrete
       - minecraft:blue_concrete
       - minecraft:purple_concrete
+      - minecraft:white_concrete
       - minecraft:red_concrete
       - minecraft:orange_concrete
       - minecraft:yellow_concrete
-      - minecraft:gray_concrete
   - bounding-box:
       start: -20, 68, -20
       end: 20, 72, 20

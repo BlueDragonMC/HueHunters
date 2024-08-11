@@ -2,13 +2,14 @@ package com.bluedragonmc.games.huehunters.server.module
 
 import com.bluedragonmc.server.Game
 import com.bluedragonmc.server.event.PlayerLeaveGameEvent
-import com.bluedragonmc.server.event.TeamAssignedEvent
 import com.bluedragonmc.server.module.DependsOn
 import com.bluedragonmc.server.module.GameModule
 import com.bluedragonmc.server.module.combat.OldCombatModule
 import com.bluedragonmc.server.module.minigame.SpectatorModule
-import com.bluedragonmc.server.module.minigame.TeamModule
+import com.bluedragonmc.server.utils.plus
 import net.kyori.adventure.sound.Sound
+import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.format.NamedTextColor
 import net.minestom.server.MinecraftServer
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.EntityType
@@ -20,10 +21,11 @@ import net.minestom.server.event.Event
 import net.minestom.server.event.EventNode
 import net.minestom.server.event.entity.EntityAttackEvent
 import net.minestom.server.event.entity.EntityDamageEvent
-import net.minestom.server.event.player.PlayerChangeHeldSlotEvent
 import net.minestom.server.event.player.PlayerDeathEvent
 import net.minestom.server.event.player.PlayerMoveEvent
+import net.minestom.server.event.player.PlayerUseItemOnBlockEvent
 import net.minestom.server.instance.block.Block
+import net.minestom.server.item.ItemStack
 import net.minestom.server.sound.SoundEvent
 import net.minestom.server.tag.Tag
 
@@ -33,18 +35,32 @@ import net.minestom.server.tag.Tag
 // the block display has no hitbox, but an Interaction does
 
 @DependsOn(ColorXrayModule::class)
-class BlockDisguisesModule(val hidersTeam: TeamModule.Team) : GameModule() {
+class BlockDisguisesModule(val useDisguiseItem: ItemStack) : GameModule() {
     private lateinit var parent: Game
     val disguises = hashMapOf<Player, Entity>()
     val TAG_DISGUISE_OWNER = Tag.UUID("disguise_owner_uuid")
     override fun initialize(parent: Game, eventNode: EventNode<Event>) {
         this.parent = parent
         // HueHunters-specific
-        eventNode.addListener(TeamAssignedEvent::class.java) { event ->
-            disguisePlayerIfAllowed(event.player)
-        }
-        eventNode.addListener(PlayerChangeHeldSlotEvent::class.java) { event ->
-            disguisePlayerIfAllowed(event.player, event.slot)
+        eventNode.addListener(PlayerUseItemOnBlockEvent::class.java) { event ->
+            println("HERE1")
+//            if (!event.itemStack.isSimilar(useDisguiseItem)) return@addListener TODO fix
+            println("HERE2")
+            val block = event.player.instance.getBlock(event.position)
+            if (!parent.getModule<ColorXrayModule>().getDisappearableBlocks().contains(block.registry().material())) {
+                event.player.sendMessage(
+                    Component.text(
+                        "You can't disguise as ",
+                        NamedTextColor.RED
+                    ) + Component.translatable(block.registry().translationKey(), NamedTextColor.RED) + Component.text(
+                        "!",
+                        NamedTextColor.RED
+                    )
+                )
+                return@addListener
+            }
+            println("HERE3")
+            disguisePlayer(event.player, block)
         }
 
         eventNode.addListener(PlayerMoveEvent::class.java) { event ->
@@ -65,7 +81,7 @@ class BlockDisguisesModule(val hidersTeam: TeamModule.Team) : GameModule() {
 
         // Forward attack events
         eventNode.addListener(OldCombatModule.PlayerAttackEvent::class.java) { event ->
-            val target = event.target as? LivingEntity ?: return@addListener
+            val target = event.target
             if (target in disguises.values) {
                 event.isCancelled = true
                 val owner = getOwner(target)
@@ -98,35 +114,8 @@ class BlockDisguisesModule(val hidersTeam: TeamModule.Team) : GameModule() {
         }
     }
 
-    /**
-     * Calls [disguisePlayerFromHand] only if the player is on the [hidersTeam].
-     */
-    private fun disguisePlayerIfAllowed(player: Player, heldSlot: Byte = player.heldSlot) {
-        if (parent.getModule<TeamModule>().getTeam(player) == hidersTeam) {
-            disguisePlayerFromHand(player, heldSlot)
-        }
-    }
-
-    /**
-     * Turns the player into a random block whose color matches the item in the player's hand.
-     */
-    private fun disguisePlayerFromHand(player: Player, heldSlot: Byte = player.heldSlot) {
-        disguises[player]?.remove()
-        val colorXrayModule = parent.getModule<ColorXrayModule>()
-        val color = colorXrayModule.getHoldingColor(player, heldSlot)
-        if (color == null) {
-            undisguisePlayer(player)
-            return
-        }
-        val blocks = colorXrayModule.getColorBlocks(color)
-        if (blocks == null) {
-            undisguisePlayer(player)
-            return
-        }
-        disguisePlayer(player, blocks.random().block())
-    }
-
     private fun disguisePlayer(player: Player, block: Block) {
+        player.sendMessage(Component.text("You are now a ") + Component.translatable(block.registry().translationKey()))
         val entity = Entity(EntityType.FALLING_BLOCK)
         val meta = entity.entityMeta as FallingBlockMeta
         meta.block = (block)
@@ -134,12 +123,13 @@ class BlockDisguisesModule(val hidersTeam: TeamModule.Team) : GameModule() {
     }
 
     private fun disguisePlayer(player: Player, disguise: Entity) {
+        disguises[player]?.remove()
         disguise.updateViewableRule { player.uuid != it.uuid }
         player.getAttribute(Attribute.GENERIC_SCALE).baseValue = 0.5 // Allows the player to fit through 1 block gaps
         player.isAutoViewable = false
         disguise.entityMeta.isHasNoGravity = true
         disguise.customName = player.name
-        disguise.isCustomNameVisible = true
+        disguise.isCustomNameVisible = false
         disguise.setTag(TAG_DISGUISE_OWNER, player.uuid)
         disguise.setInstance(player.instance ?: return, player.position)
         if (disguise is LivingEntity) disguise.isInvulnerable = true
