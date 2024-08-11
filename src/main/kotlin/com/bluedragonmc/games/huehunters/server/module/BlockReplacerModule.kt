@@ -54,14 +54,13 @@ class BlockReplacerModule(private val instances: Iterable<Instance>) : GameModul
         val start: Pos,
         val end: Pos
     ) {
-        constructor() : this(Pos(0.0, 0.0,0.0), Pos(0.0,0.0,0.0))
+        constructor() : this(Pos(0.0, 0.0, 0.0), Pos(0.0, 0.0, 0.0))
     }
 
     override fun initialize(parent: Game, eventNode: EventNode<Event>) {
         val cm = parent.getModule<ConfigModule>()
         val replacements = cm.getConfig().node("replacements").getList(Replacement::class.java)
         instances.forEach { instance ->
-            val changes = mutableMapOf<Pos, Block>()
             replacements?.forEach { (boundingBox, find, replaceWith) ->
                 // Preload chunks
                 val futures = mutableListOf<CompletableFuture<Chunk>>()
@@ -77,11 +76,12 @@ class BlockReplacerModule(private val instances: Iterable<Instance>) : GameModul
                     for (y in range(boundingBox.start.blockY(), boundingBox.end.blockY())) {
                         for (z in range(boundingBox.start.blockZ(), boundingBox.end.blockZ())) {
                             val b = instance.getBlock(x, y, z)
-                            if (find.any { it.compare(b, Block.Comparator.ID) }) {
-                                val newBlock = findAdjacent(x.toDouble(), y.toDouble(), z.toDouble(), changes)
-                                    ?: replaceWith.random()
-                                instance.setBlock(x, y, z, newBlock)
-                                changes[Pos(x.toDouble(), y.toDouble(), z.toDouble())] = newBlock
+                            if (find.any { it.compare(b) }) {
+                                replaceClump(
+                                    instance,
+                                    Pos(x.toDouble(), y.toDouble(), z.toDouble()),
+                                    replaceWith.random()
+                                )
                             }
                         }
                     }
@@ -90,9 +90,36 @@ class BlockReplacerModule(private val instances: Iterable<Instance>) : GameModul
         }
     }
 
-    private fun findAdjacent(x: Double, y: Double, z: Double, world: Map<Pos, Block>): Block? {
-        return world[Pos(x - 1, y, z)] ?: world[Pos(x + 1, y, z)] ?: world[Pos(x, y - 1, z)] ?: world[Pos(x, y + 1, z)]
-        ?: world[Pos(x, y, z - 1)] ?: world[Pos(x, y, z + 1)]
+    private fun replaceClump(instance: Instance, centerPos: Pos, replaceWith: Block) {
+        val checked = mutableListOf<Pos>()
+        val queue = mutableListOf(centerPos)
+        val blocks = mutableListOf<Pos>()
+        val centerBlock = instance.getBlock(centerPos)
+
+        while (queue.isNotEmpty()) {
+            val pos = queue.removeFirst()
+            if (checked.contains(pos)) continue
+            checked.add(pos)
+            if (instance.getBlock(pos).compare(centerBlock)) {
+                blocks.add(pos)
+                queue.addAll(getAdjacent(pos))
+            }
+        }
+
+        for (block in blocks) {
+            instance.setBlock(block, replaceWith)
+        }
+    }
+
+    private fun getAdjacent(pos: Pos): List<Pos> {
+        return listOf(
+            Pos(pos.blockX().toDouble() - 1.0, pos.blockY().toDouble(), pos.blockZ().toDouble()),
+            Pos(pos.blockX().toDouble() + 1.0, pos.blockY().toDouble(), pos.blockZ().toDouble()),
+            Pos(pos.blockX().toDouble(), pos.blockY().toDouble() - 1.0, pos.blockZ().toDouble()),
+            Pos(pos.blockX().toDouble(), pos.blockY().toDouble() + 1.0, pos.blockZ().toDouble()),
+            Pos(pos.blockX().toDouble(), pos.blockY().toDouble(), pos.blockZ().toDouble() - 1.0),
+            Pos(pos.blockX().toDouble(), pos.blockY().toDouble(), pos.blockZ().toDouble() + 1.0),
+        )
     }
 
     private fun range(num1: Int, num2: Int): IntRange {

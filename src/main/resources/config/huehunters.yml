@@ -57,7 +57,7 @@ xray:
     - minecraft:purple_wool
 replacements:
   - bounding-box:
-      start: -20, 68, -20
+      start: -20, 67, -20
       end: 20, 72, 20
     find:
       - minecraft:purple_glazed_terracotta
@@ -71,7 +71,7 @@ replacements:
       - minecraft:orange_concrete
       - minecraft:yellow_concrete
   - bounding-box:
-      start: -20, 68, -20
+      start: -22, 68, -20
       end: 20, 72, 20
     find:
       - minecraft:yellow_glazed_terracotta
