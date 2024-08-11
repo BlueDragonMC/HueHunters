@@ -4,6 +4,7 @@ xray:
     - minecraft:red_wool
     - minecraft:crimson_stem
     - minecraft:tnt
+    - minecraft:waxed_copper_door
   orange:
     - minecraft:orange_concrete
     - minecraft:orange_wool
@@ -15,6 +16,7 @@ xray:
     - minecraft:blue_shulker_box
     - minecraft:stripped_warped_hyphae
     - minecraft:light_blue_stained_glass
+    - minecraft:soul_lantern
   green:
     - minecraft:green_concrete
     - minecraft:green_wool
@@ -34,6 +36,8 @@ xray:
     - minecraft:cobweb
     - minecraft:iron_door
     - minecraft:iron_bars
+    - minecraft:iron_block
+    - minecraft:calcite
   brown:
     - minecraft:brown_concrete
     - minecraft:brown_wool
@@ -45,6 +49,7 @@ xray:
     - minecraft:bookshelf
     - minecraft:oak_slab
     - minecraft:oak_stairs
+    - minecraft:oak_planks
     - minecraft:lectern
     - minecraft:ladder
   yellow:
@@ -55,6 +60,7 @@ xray:
   purple:
     - minecraft:purple_concrete
     - minecraft:purple_wool
+    - minecraft:amethyst_block
 replacements:
   - bounding-box:
       start: -20, 67, -20

@@ -10,24 +10,26 @@ import com.bluedragonmc.server.utils.plus
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
-import net.minestom.server.MinecraftServer
+import net.minestom.server.coordinate.Point
+import net.minestom.server.coordinate.Pos
 import net.minestom.server.entity.Entity
 import net.minestom.server.entity.EntityType
-import net.minestom.server.entity.LivingEntity
 import net.minestom.server.entity.Player
 import net.minestom.server.entity.attribute.Attribute
-import net.minestom.server.entity.metadata.other.FallingBlockMeta
+import net.minestom.server.entity.metadata.display.BlockDisplayMeta
+import net.minestom.server.entity.metadata.other.InteractionMeta
 import net.minestom.server.event.Event
 import net.minestom.server.event.EventNode
 import net.minestom.server.event.entity.EntityAttackEvent
 import net.minestom.server.event.entity.EntityDamageEvent
 import net.minestom.server.event.player.PlayerDeathEvent
 import net.minestom.server.event.player.PlayerMoveEvent
+import net.minestom.server.event.player.PlayerTickEvent
 import net.minestom.server.event.player.PlayerUseItemOnBlockEvent
+import net.minestom.server.instance.Instance
 import net.minestom.server.instance.block.Block
 import net.minestom.server.item.ItemStack
 import net.minestom.server.sound.SoundEvent
-import net.minestom.server.tag.Tag
 
 // TODO make this a standard module in BlueDragon's common library
 
@@ -36,16 +38,20 @@ import net.minestom.server.tag.Tag
 
 @DependsOn(ColorXrayModule::class)
 class BlockDisguisesModule(val useDisguiseItem: ItemStack) : GameModule() {
+    companion object {
+        /**
+         * How long you have to stand still before your disguise snaps, in ticks
+         */
+        private const val SNAP_DELAY_TICKS = 30L
+    }
     private lateinit var parent: Game
-    val disguises = hashMapOf<Player, Entity>()
-    val TAG_DISGUISE_OWNER = Tag.UUID("disguise_owner_uuid")
+    val disguises = hashMapOf<Player, DamageableBlockEntity>()
+    private val moveTimer = hashMapOf<Player, Long>() // Tracks the time that each player has not moved
     override fun initialize(parent: Game, eventNode: EventNode<Event>) {
         this.parent = parent
         // HueHunters-specific
         eventNode.addListener(PlayerUseItemOnBlockEvent::class.java) { event ->
-            println("HERE1")
 //            if (!event.itemStack.isSimilar(useDisguiseItem)) return@addListener TODO fix
-            println("HERE2")
             val block = event.player.instance.getBlock(event.position)
             if (!parent.getModule<ColorXrayModule>().getDisappearableBlocks().contains(block.registry().material())) {
                 event.player.sendMessage(
@@ -59,13 +65,23 @@ class BlockDisguisesModule(val useDisguiseItem: ItemStack) : GameModule() {
                 )
                 return@addListener
             }
-            println("HERE3")
             disguisePlayer(event.player, block)
+        }
+        eventNode.addListener(PlayerTickEvent::class.java) { event ->
+            val newTime = moveTimer.getOrDefault(event.player, 0) + 1
+            moveTimer[event.player] = newTime
+            if (newTime >= SNAP_DELAY_TICKS) {
+                val disguise = disguises[event.player]
+                if (disguise?.snap == false) disguise.snap = true
+            }
         }
 
         eventNode.addListener(PlayerMoveEvent::class.java) { event ->
+            if (event.newPosition.samePoint(event.player.position)) return@addListener
+            moveTimer[event.player] = 0L
+            disguises[event.player]?.snap = false
             val disguise = disguises[event.player] ?: return@addListener
-            disguise.pose = event.player.pose
+            disguise.displayEntity.pose = event.player.pose
             disguise.teleport(event.newPosition)
         }
 
@@ -82,15 +98,17 @@ class BlockDisguisesModule(val useDisguiseItem: ItemStack) : GameModule() {
         // Forward attack events
         eventNode.addListener(OldCombatModule.PlayerAttackEvent::class.java) { event ->
             val target = event.target
-            if (target in disguises.values) {
-                event.isCancelled = true
-                val owner = getOwner(target)
-                parent.callEvent(
-                    EntityAttackEvent(
-                        event.attacker,
-                        owner ?: return@addListener
+            for (disguise in disguises.values) {
+                if (target == disguise.interactionEntity) {
+                    event.isCancelled = true
+                    val owner = disguise.owner
+                    parent.callEvent(
+                        EntityAttackEvent(
+                            event.attacker,
+                            owner ?: return@addListener
+                        )
                     )
-                )
+                }
             }
         }
 
@@ -104,7 +122,7 @@ class BlockDisguisesModule(val useDisguiseItem: ItemStack) : GameModule() {
                 Sound.Source.PLAYER,
                 1.0f,
                 1.0f
-            ), disguise.position)
+            ), disguise.owner.position)
         }
     }
 
@@ -116,30 +134,22 @@ class BlockDisguisesModule(val useDisguiseItem: ItemStack) : GameModule() {
 
     private fun disguisePlayer(player: Player, block: Block) {
         player.sendMessage(Component.text("You are now a ") + Component.translatable(block.registry().translationKey()))
-        val entity = Entity(EntityType.FALLING_BLOCK)
-        val meta = entity.entityMeta as FallingBlockMeta
-        meta.block = (block)
+        if (isDisguised(player)) {
+            disguises[player]!!.setBlock(block)
+            return
+        }
+        val entity = DamageableBlockEntity(player)
+        entity.setBlock(block)
         disguisePlayer(player, entity)
     }
 
-    private fun disguisePlayer(player: Player, disguise: Entity) {
+    private fun disguisePlayer(player: Player, disguise: DamageableBlockEntity) {
         disguises[player]?.remove()
-        disguise.updateViewableRule { player.uuid != it.uuid }
         player.getAttribute(Attribute.GENERIC_SCALE).baseValue = 0.5 // Allows the player to fit through 1 block gaps
         player.isAutoViewable = false
-        disguise.entityMeta.isHasNoGravity = true
-        disguise.customName = player.name
-        disguise.isCustomNameVisible = false
-        disguise.setTag(TAG_DISGUISE_OWNER, player.uuid)
         disguise.setInstance(player.instance ?: return, player.position)
-        if (disguise is LivingEntity) disguise.isInvulnerable = true
         disguises[player] = disguise
     }
-
-    /**
-     * Returns the player's disguise if they are disguised, otherwise just returns the player.
-     */
-    private fun getDisguiseOrPlayer(player: Player): Entity = disguises[player] ?: player
 
     private fun undisguisePlayer(player: Player) {
         if (!isDisguised(player)) return
@@ -150,9 +160,72 @@ class BlockDisguisesModule(val useDisguiseItem: ItemStack) : GameModule() {
     }
 
     private fun isDisguised(player: Player): Boolean = disguises.containsKey(player)
+}
+
+/**
+ * Combines a DisplayEntity and InteractionEntity to make a block display that can be attacked
+ */
+data class DamageableBlockEntity(
+    val owner: Player,
+    val displayEntity: Entity = Entity(EntityType.BLOCK_DISPLAY),
+    val interactionEntity: Entity = Entity(EntityType.INTERACTION),
+) {
+    val displayMeta: BlockDisplayMeta get() { return displayEntity.entityMeta as BlockDisplayMeta }
+    val interactionMeta: InteractionMeta get() { return interactionEntity.entityMeta as InteractionMeta }
+
+    init {
+        displayMeta.isHasNoGravity = true
+        interactionMeta.isHasNoGravity = true
+        interactionEntity.customName = owner.name
+        interactionEntity.isCustomNameVisible = false
+
+        displayMeta.transformationInterpolationDuration = 1
+        displayMeta.transformationInterpolationStartDelta = -1
+
+        // The display entity is left visible to the owner
+        interactionEntity.updateViewableRule { owner.uuid != it.uuid }
+    }
 
     /**
-     * Get the player using the disguise.
+     * If snap is enabled, future calls to `teleport` will move the entity to the center of its block.
      */
-    private fun getOwner(disguise: Entity): Player? = MinecraftServer.getConnectionManager().getOnlinePlayerByUuid(disguise.getTag(TAG_DISGUISE_OWNER))
+    var snap: Boolean = false
+        set(value) {
+            field = value
+            teleport(owner.position)
+        }
+
+    fun setBlock(block: Block) {
+        displayMeta.setBlockState(block)
+        // TODO assign height and width based on block shape
+        interactionMeta.height = 1f
+        interactionMeta.width = 1f
+    }
+
+    fun teleport(pos: Pos) {
+        val newPos =
+            if (snap) Pos(pos.blockX().toDouble(), pos.blockY().toDouble(), pos.blockZ().toDouble(), 0f, 0f)
+            else Pos(pos.x - 0.5, pos.y, pos.z - 0.5, 0f, 0f)
+        if (snap) {
+            if (owner.instance.getBlock(newPos).compare(displayMeta.blockStateId)) {
+                // Prevent players from snapping inside identical blocks
+                owner.sendMessage(Component.text("You can't snap to this block!", NamedTextColor.RED))
+                owner.playSound(Sound.sound(SoundEvent.BLOCK_NOTE_BLOCK_PLING, Sound.Source.PLAYER, 1.0f, 0.5f))
+                return
+            }
+            owner.playSound(Sound.sound(SoundEvent.BLOCK_NOTE_BLOCK_PLING, Sound.Source.PLAYER, 1.0f, 2.0f))
+        }
+        displayEntity.teleport(newPos)
+        interactionEntity.teleport(newPos)
+    }
+
+    fun setInstance(instance: Instance, spawnPosition: Point) {
+        displayEntity.setInstance(instance, spawnPosition)
+        interactionEntity.setInstance(instance, spawnPosition)
+    }
+
+    fun remove() {
+        displayEntity.remove()
+        interactionEntity.remove()
+    }
 }
