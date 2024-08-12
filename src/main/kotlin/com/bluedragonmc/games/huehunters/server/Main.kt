@@ -6,20 +6,16 @@ import com.bluedragonmc.games.huehunters.StubDatabaseConnection
 import com.bluedragonmc.games.huehunters.StubEnvironment
 import com.bluedragonmc.games.huehunters.server.command.StartCommand
 import com.bluedragonmc.server.ALT_COLOR_1
-import com.bluedragonmc.server.VersionInfo
 import com.bluedragonmc.server.api.*
-import com.bluedragonmc.server.api.Queue
 import com.bluedragonmc.server.module.minigame.SpawnpointModule
 import com.bluedragonmc.server.service.Database
 import com.bluedragonmc.server.service.Messaging
 import com.bluedragonmc.server.service.Permissions
 import net.kyori.adventure.text.Component
 import net.minestom.server.MinecraftServer
-import net.minestom.server.entity.Player
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent
 import net.minestom.server.event.player.PlayerSpawnEvent
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.util.*
 
 private val logger = LoggerFactory.getLogger("HueHuntersMain")

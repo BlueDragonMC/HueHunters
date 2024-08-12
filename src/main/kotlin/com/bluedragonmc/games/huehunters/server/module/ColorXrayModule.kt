@@ -3,10 +3,7 @@ package com.bluedragonmc.games.huehunters.server.module
 import com.bluedragonmc.server.Game
 import com.bluedragonmc.server.module.GameModule
 import com.bluedragonmc.server.module.config.ConfigModule
-import com.bluedragonmc.server.utils.component1
-import com.bluedragonmc.server.utils.component2
-import com.bluedragonmc.server.utils.component3
-import com.bluedragonmc.server.utils.toBlockVec
+import com.bluedragonmc.server.utils.*
 import net.minestom.server.MinecraftServer
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.coordinate.Vec
@@ -123,7 +120,7 @@ abstract class ColorXrayModule(val radius: Int = 5) : GameModule() {
     private val SMALL_SIZE = 0.4
 
     private fun playDisappearEffect(player: Player, block: DisappearedBlock) {
-        player.instance.setBlock(block.position, if(block.block.isSolid) Block.BARRIER else Block.AIR)
+        player.instance.setBlock(block.position, if(block.block.isFullCube()) Block.BARRIER else Block.AIR)
         player.sendPacket(BlockChangePacket(block.position, Block.AIR))
 
         val temp = Entity(EntityType.BLOCK_DISPLAY)

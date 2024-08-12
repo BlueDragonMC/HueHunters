@@ -51,7 +51,8 @@ class BlockDisguisesModule(val useDisguiseItem: ItemStack) : GameModule() {
         this.parent = parent
         // HueHunters-specific
         eventNode.addListener(PlayerUseItemOnBlockEvent::class.java) { event ->
-//            if (!event.itemStack.isSimilar(useDisguiseItem)) return@addListener TODO fix
+            val itemStack = event.player.itemInMainHand
+            if (!itemStack.isSimilar(useDisguiseItem)) return@addListener
             val block = event.player.instance.getBlock(event.position)
             if (!parent.getModule<ColorXrayModule>().getDisappearableBlocks().contains(block.registry().material())) {
                 event.player.sendMessage(
