@@ -5,7 +5,6 @@ import com.bluedragonmc.games.huehunters.server.module.BlockDisguisesModule
 import com.bluedragonmc.games.huehunters.server.module.BlockReplacerModule
 import com.bluedragonmc.games.huehunters.server.module.ColorXrayModule
 import com.bluedragonmc.server.Game
-import com.bluedragonmc.server.event.GameEvent
 import com.bluedragonmc.server.event.GameStateChangedEvent
 import com.bluedragonmc.server.event.GameStartEvent
 import com.bluedragonmc.server.event.TeamAssignedEvent
@@ -31,6 +30,7 @@ import net.minestom.server.MinecraftServer
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.entity.GameMode
 import net.minestom.server.entity.Player
+import net.minestom.server.entity.attribute.Attribute
 import net.minestom.server.event.player.PlayerDeathEvent
 import net.minestom.server.event.player.PlayerSpawnEvent
 import net.minestom.server.item.ItemStack
@@ -149,8 +149,9 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
                     return@handleEvent
                 }
 
-                event.player.inventory.clear()
                 helpersTeam.addPlayer(event.player)
+                event.player.inventory.clear()
+                event.player.getAttribute(Attribute.GENERIC_SCALE).baseValue = 0.5
                 event.player.sendMessage(Component.text("\nYou are now a hunter's helper! Clicking on a\nhider marks them for the hunter to find.\n", NamedTextColor.YELLOW))
             }
         }
@@ -158,13 +159,14 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
         handleEvent<OldCombatModule.PlayerAttackEvent> { event ->
             if (event.target is Player && getModule<TeamModule>().getTeam(event.player) == helpersTeam && getModule<TeamModule>().getTeam(event.target as Player) == hidersTeam) {
                 event.isCancelled = true
-                if (!event.target.isGlowing) {
+                val disguise = getModule<BlockDisguisesModule>().disguises[event.target as Player] ?: return@handleEvent
+                if (!disguise.displayEntity.isGlowing) {
                     (event.target as Player).playSound(Sound.sound(SoundEvent.ENCHANT_THORNS_HIT, Sound.Source.HOSTILE, 1f, 1f))
                     (event.target as Player).sendMessage(Component.text("You have been tagged! ", NamedTextColor.DARK_RED, TextDecoration.BOLD) + Component.text("You are visible to all seekers for 5 seconds.", NamedTextColor.RED))
                 }
-                event.target.isGlowing = true
+                disguise.displayEntity.isGlowing = true
                 MinecraftServer.getSchedulerManager().buildTask {
-                    event.target.isGlowing = false
+                    disguise.displayEntity.isGlowing = false
                 }.delay(Duration.ofSeconds(5)).schedule().manage(this)
             }
         }

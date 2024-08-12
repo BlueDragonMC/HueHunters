@@ -134,6 +134,7 @@ class BlockDisguisesModule(val useDisguiseItem: ItemStack) : GameModule() {
 
     private fun disguisePlayer(player: Player, block: Block) {
         player.sendMessage(Component.text("You are now a ") + Component.translatable(block.registry().translationKey()))
+        val wasGlowing = disguises[player]?.displayEntity?.isGlowing == true
         if (isDisguised(player)) {
             disguises[player]!!.setBlock(block)
             return
@@ -141,6 +142,7 @@ class BlockDisguisesModule(val useDisguiseItem: ItemStack) : GameModule() {
         val entity = DamageableBlockEntity(player)
         entity.setBlock(block)
         disguisePlayer(player, entity)
+        entity.displayEntity.isGlowing = wasGlowing
     }
 
     private fun disguisePlayer(player: Player, disguise: DamageableBlockEntity) {
