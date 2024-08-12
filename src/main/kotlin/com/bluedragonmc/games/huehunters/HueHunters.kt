@@ -35,6 +35,7 @@ import net.minestom.server.event.player.PlayerDeathEvent
 import net.minestom.server.event.player.PlayerSpawnEvent
 import net.minestom.server.item.ItemStack
 import net.minestom.server.item.Material
+import net.minestom.server.network.packet.server.play.TeamsPacket
 import net.minestom.server.sound.SoundEvent
 import java.nio.file.Paths
 import java.time.Duration
@@ -58,6 +59,8 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
             players = mutableListOf(),
             allowFriendlyFire = false
         )
+        helpersTeam.register()
+        helpersTeam.scoreboardTeam.updateNameTagVisibility(TeamsPacket.NameTagVisibility.HIDE_FOR_OTHER_TEAMS)
         val seekersTeam = TeamModule.Team(
             name = Component.text("Seekers", NamedTextColor.DARK_RED),
             players = mutableListOf(),
