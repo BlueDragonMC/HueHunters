@@ -150,8 +150,10 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
 
                 helpersTeam.addPlayer(event.player)
                 event.player.inventory.clear()
-                event.player.getAttribute(Attribute.GENERIC_SCALE).baseValue = 0.5
                 event.player.sendMessage(Component.text("\nYou are now a hunter's helper! Clicking on a\nhider marks them for the hunter to find.\n", NamedTextColor.YELLOW))
+                MinecraftServer.getSchedulerManager().buildTask {
+                    event.player.getAttribute(Attribute.GENERIC_SCALE).baseValue = 0.5
+                }.delay(Duration.ofSeconds(5)).schedule().manage(this)
             }
         }
 
