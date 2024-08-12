@@ -153,12 +153,15 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
                 event.player.sendMessage(Component.text("\nYou are now a hunter's helper! Clicking on a\nhider marks them for the hunter to find.\n", NamedTextColor.YELLOW))
                 MinecraftServer.getSchedulerManager().buildTask {
                     event.player.getAttribute(Attribute.GENERIC_SCALE).baseValue = 0.5
+                    event.player.getAttribute(Attribute.GENERIC_MAX_HEALTH).baseValue = 6.0
                 }.delay(Duration.ofSeconds(5)).schedule().manage(this)
             }
         }
 
         handleEvent<OldCombatModule.PlayerAttackEvent> { event ->
-            if (event.target is Player && getModule<TeamModule>().getTeam(event.player) == helpersTeam && getModule<TeamModule>().getTeam(event.target as Player) == hidersTeam) {
+            val attackerTeam = getModule<TeamModule>().getTeam(event.player)
+            val targetTeam = getModule<TeamModule>().getTeam(event.target as? Player ?: return@handleEvent)
+            if (attackerTeam == helpersTeam && targetTeam == hidersTeam) {
                 event.isCancelled = true
                 val disguise = getModule<BlockDisguisesModule>().disguises[event.target as Player] ?: return@handleEvent
                 if (!disguise.displayEntity.isGlowing) {
@@ -169,6 +172,12 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
                 MinecraftServer.getSchedulerManager().buildTask {
                     disguise.displayEntity.isGlowing = false
                 }.delay(Duration.ofSeconds(5)).schedule().manage(this)
+            }
+            if (attackerTeam == helpersTeam && targetTeam == seekersTeam) {
+                event.isCancelled = true
+            }
+            if (attackerTeam == seekersTeam && targetTeam == helpersTeam) {
+                event.isCancelled = true
             }
         }
 
