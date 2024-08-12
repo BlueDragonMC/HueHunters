@@ -33,7 +33,7 @@ class AsymmetricTeamsModule(val seekersTeam: TeamModule.Team, val hidersTeam: Te
         this.parent = parent
         eventNode.addListener(GameStartEvent::class.java) { event ->
             // Make teams when game starts
-            val players = mutableListOf(*parent.players.toTypedArray())
+            val players = ArrayList(parent.players)
             val seeker = players.random()
             players.remove(seeker)
             seekersTeam.addPlayer(seeker)

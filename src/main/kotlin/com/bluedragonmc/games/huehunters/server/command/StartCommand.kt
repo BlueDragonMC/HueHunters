@@ -3,6 +3,7 @@ package com.bluedragonmc.games.huehunters.server.command
 import com.bluedragonmc.server.Game
 import com.bluedragonmc.server.command.BlueDragonCommand
 import com.bluedragonmc.server.event.GameStartEvent
+import com.bluedragonmc.server.utils.GameState
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 
@@ -14,6 +15,7 @@ class StartCommand(name: String) : BlueDragonCommand(name = name, block = {
             return@syntax
         }
         game.callEvent(GameStartEvent(game))
+        game.state = GameState.INGAME
         sender.sendMessage(Component.text("Game started successfully", NamedTextColor.GREEN))
     }
 })

@@ -170,17 +170,14 @@ data class DamageableBlockEntity(
     val displayEntity: Entity = Entity(EntityType.BLOCK_DISPLAY),
     val interactionEntity: Entity = Entity(EntityType.INTERACTION),
 ) {
-    val displayMeta: BlockDisplayMeta get() { return displayEntity.entityMeta as BlockDisplayMeta }
-    val interactionMeta: InteractionMeta get() { return interactionEntity.entityMeta as InteractionMeta }
+    private val displayMeta: BlockDisplayMeta get() { return displayEntity.entityMeta as BlockDisplayMeta }
+    private val interactionMeta: InteractionMeta get() { return interactionEntity.entityMeta as InteractionMeta }
 
     init {
         displayMeta.isHasNoGravity = true
         interactionMeta.isHasNoGravity = true
         interactionEntity.customName = owner.name
         interactionEntity.isCustomNameVisible = false
-
-        displayMeta.transformationInterpolationDuration = 1
-        displayMeta.transformationInterpolationStartDelta = -1
 
         // The display entity is left visible to the owner
         interactionEntity.updateViewableRule { owner.uuid != it.uuid }
@@ -215,6 +212,8 @@ data class DamageableBlockEntity(
             }
             owner.playSound(Sound.sound(SoundEvent.BLOCK_NOTE_BLOCK_PLING, Sound.Source.PLAYER, 1.0f, 2.0f))
         }
+        displayMeta.transformationInterpolationDuration = 1
+        displayMeta.transformationInterpolationStartDelta = -1
         displayEntity.teleport(newPos)
         interactionEntity.teleport(newPos)
     }

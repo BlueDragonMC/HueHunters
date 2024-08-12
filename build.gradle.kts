@@ -20,6 +20,8 @@ dependencies {
     implementation("org.spongepowered:configurate-yaml:4.1.2")
 
     implementation("ch.qos.logback:logback-classic:1.4.12")
+
+    compileOnly("com.github.bluedragonmc:rpc:fb16ef4cc5")
 }
 
 tasks.test {

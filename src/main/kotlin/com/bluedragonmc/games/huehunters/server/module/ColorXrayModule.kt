@@ -119,7 +119,7 @@ abstract class ColorXrayModule(val radius: Int = 5) : GameModule() {
         playDisappearEffect(player, block)
     }
 
-    private val EFFECT_DURATION = 5 // ticks?
+    private val EFFECT_DURATION = 5
     private val SMALL_SIZE = 0.4
 
     private fun playDisappearEffect(player: Player, block: DisappearedBlock) {
