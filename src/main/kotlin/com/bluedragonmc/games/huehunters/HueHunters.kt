@@ -5,6 +5,7 @@ import com.bluedragonmc.games.huehunters.server.module.BlockDisguisesModule
 import com.bluedragonmc.games.huehunters.server.module.BlockReplacerModule
 import com.bluedragonmc.games.huehunters.server.module.ColorXrayModule
 import com.bluedragonmc.server.Game
+import com.bluedragonmc.server.event.GameStartEvent
 import com.bluedragonmc.server.event.TeamAssignedEvent
 import com.bluedragonmc.server.module.combat.OldCombatModule
 import com.bluedragonmc.server.module.config.ConfigModule
@@ -17,7 +18,7 @@ import com.bluedragonmc.server.module.map.AnvilFileMapProviderModule
 import com.bluedragonmc.server.module.minigame.*
 import com.bluedragonmc.server.module.vanilla.DoorsModule
 import com.bluedragonmc.server.module.vanilla.FallDamageModule
-import com.bluedragonmc.server.module.vanilla.NaturalRegenerationModule
+import com.bluedragonmc.server.utils.GameState
 import com.bluedragonmc.server.utils.noItalic
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
@@ -40,7 +41,6 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
         }
         use(InventoryPermissionsModule(allowDropItem = false, allowMoveItem = false))
         use(MOTDModule(Component.text("Hiders disguised as blocks must avoid\n")))
-        use(NaturalRegenerationModule())
         use(OldCombatModule(allowDamage = true, allowKnockback = true))
         use(PlayerResetModule(defaultGameMode = GameMode.ADVENTURE))
         use(SidebarModule(title = name))
@@ -73,6 +73,10 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
             .customName(Component.text("Change Block (right-click)").noItalic())
             .build()
         use(BlockDisguisesModule(useDisguiseItem = useDisguiseItem))
+
+        eventNode.addListener(GameStartEvent::class.java) { event ->
+            state = GameState.INGAME
+        }
 
         eventNode.addListener(TeamAssignedEvent::class.java) { event ->
             val player = event.player
