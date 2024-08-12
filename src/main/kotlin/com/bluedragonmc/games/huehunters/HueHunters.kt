@@ -144,6 +144,11 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
 
                 if (hidersTeam.players.isEmpty()) {
                     MinecraftServer.getSchedulerManager().scheduleNextTick {
+                        for (player in ArrayList(helpersTeam.players)) {
+                            // Switch them to the seekers team so that they see the victory title
+                            helpersTeam.removePlayer(player)
+                            seekersTeam.addPlayer(player)
+                        }
                         getModule<WinModule>().declareWinner(seekersTeam)
                     }
                     return@handleEvent
