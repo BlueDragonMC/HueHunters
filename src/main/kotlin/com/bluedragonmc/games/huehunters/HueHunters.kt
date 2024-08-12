@@ -5,8 +5,8 @@ import com.bluedragonmc.games.huehunters.server.module.BlockDisguisesModule
 import com.bluedragonmc.games.huehunters.server.module.BlockReplacerModule
 import com.bluedragonmc.games.huehunters.server.module.ColorXrayModule
 import com.bluedragonmc.server.Game
-import com.bluedragonmc.server.event.GameStateChangedEvent
 import com.bluedragonmc.server.event.GameStartEvent
+import com.bluedragonmc.server.event.GameStateChangedEvent
 import com.bluedragonmc.server.event.TeamAssignedEvent
 import com.bluedragonmc.server.module.combat.CustomDeathMessageModule
 import com.bluedragonmc.server.module.combat.OldCombatModule
@@ -20,7 +20,6 @@ import com.bluedragonmc.server.module.map.AnvilFileMapProviderModule
 import com.bluedragonmc.server.module.minigame.*
 import com.bluedragonmc.server.module.vanilla.DoorsModule
 import com.bluedragonmc.server.module.vanilla.FallDamageModule
-import com.bluedragonmc.server.utils.GameState
 import com.bluedragonmc.server.utils.*
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
@@ -162,7 +161,7 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
                 val disguise = getModule<BlockDisguisesModule>().disguises[event.target as Player] ?: return@handleEvent
                 if (!disguise.displayEntity.isGlowing) {
                     (event.target as Player).playSound(Sound.sound(SoundEvent.ENCHANT_THORNS_HIT, Sound.Source.HOSTILE, 1f, 1f))
-                    (event.target as Player).sendMessage(Component.text("You have been tagged! ", NamedTextColor.DARK_RED, TextDecoration.BOLD) + Component.text("You are visible to all seekers for 5 seconds.", NamedTextColor.RED))
+                    (event.target as Player).sendMessage(Component.text("You have been tagged! ", NamedTextColor.DARK_RED, TextDecoration.BOLD) + Component.text("You are visible to all seekers for 5 seconds.", NamedTextColor.RED).decoration(TextDecoration.BOLD, false))
                 }
                 disguise.displayEntity.isGlowing = true
                 MinecraftServer.getSchedulerManager().buildTask {
