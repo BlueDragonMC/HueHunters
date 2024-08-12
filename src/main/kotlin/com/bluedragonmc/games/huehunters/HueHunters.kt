@@ -15,6 +15,7 @@ import com.bluedragonmc.server.module.gameplay.ActionBarModule
 import com.bluedragonmc.server.module.gameplay.InventoryPermissionsModule
 import com.bluedragonmc.server.module.gameplay.SidebarModule
 import com.bluedragonmc.server.module.gameplay.WorldPermissionsModule
+import com.bluedragonmc.server.module.instance.CustomGeneratorInstanceModule
 import com.bluedragonmc.server.module.instance.InstanceContainerModule
 import com.bluedragonmc.server.module.map.AnvilFileMapProviderModule
 import com.bluedragonmc.server.module.minigame.*
@@ -64,7 +65,7 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
         )
 
         use(ActionBarModule())
-        use(AnvilFileMapProviderModule(Paths.get("worlds/$name/$mapName")))
+        use(AnvilFileMapProviderModule(Paths.get("worlds/$name/$mapName"), CustomGeneratorInstanceModule.getFullbrightDimension()))
         use(ConfigModule("huehunters.yml"))
         use(DoorsModule())
         use(FallDamageModule())
@@ -150,7 +151,9 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
 
                 helpersTeam.addPlayer(event.player)
                 event.player.inventory.clear()
-                event.player.getAttribute(Attribute.GENERIC_SCALE).baseValue = 0.5
+                MinecraftServer.getSchedulerManager().buildTask {
+                    event.player.getAttribute(Attribute.GENERIC_SCALE).baseValue = 0.5
+                }.delay(Duration.ofSeconds(5)).schedule().manage(this)
                 event.player.sendMessage(Component.text("\nYou are now a hunter's helper! Clicking on a\nhider marks them for the hunter to find.\n", NamedTextColor.YELLOW))
             }
         }
