@@ -218,7 +218,8 @@ data class DamageableBlockEntity(
         displayMeta.transformationInterpolationDuration = 1
         displayMeta.transformationInterpolationStartDelta = -1
         displayEntity.teleport(newPos)
-        interactionEntity.teleport(newPos)
+        val hitboxPos = Pos(newPos.x + 0.5, newPos.y, newPos.z + 0.5)
+        interactionEntity.teleport(hitboxPos)
     }
 
     fun setInstance(instance: Instance, spawnPosition: Point) {
