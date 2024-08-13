@@ -12,7 +12,6 @@ import com.bluedragonmc.server.event.TeamAssignedEvent
 import com.bluedragonmc.server.module.combat.CustomDeathMessageModule
 import com.bluedragonmc.server.module.combat.OldCombatModule
 import com.bluedragonmc.server.module.config.ConfigModule
-import com.bluedragonmc.server.module.gameplay.ActionBarModule
 import com.bluedragonmc.server.module.gameplay.InventoryPermissionsModule
 import com.bluedragonmc.server.module.gameplay.SidebarModule
 import com.bluedragonmc.server.module.gameplay.WorldPermissionsModule
@@ -67,7 +66,6 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
             allowFriendlyFire = false
         )
 
-        use(ActionBarModule())
         use(AnvilFileMapProviderModule(Paths.get("worlds/$name/$mapName"), CustomGeneratorInstanceModule.getFullbrightDimension()))
         use(ConfigModule("huehunters.yml"))
         use(DoorsModule())
@@ -144,8 +142,9 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
         handleEvent<PlayerDeathEvent> { event ->
             val team = getModule<TeamModule>().getTeam(event.player)
             if (team == hidersTeam) {
-                timeRemaining = timeRemaining!! + 20
-                this.sendActionBar(Component.text("20 seconds have been added to the game clock.", BRAND_COLOR_PRIMARY_2))
+                val timeAdded = 20 / seekersTeam.players.size
+                timeRemaining = timeRemaining!! + timeAdded
+                this.sendActionBar(Component.text("$timeAdded seconds have been added to the game clock.", BRAND_COLOR_PRIMARY_2))
                 this.playSound(Sound.sound(SoundEvent.BLOCK_VAULT_ACTIVATE, Sound.Source.PLAYER, 1.0f, 1.0f))
                 hidersTeam.removePlayer(event.player)
 
