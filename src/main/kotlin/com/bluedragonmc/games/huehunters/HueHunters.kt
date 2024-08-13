@@ -31,6 +31,7 @@ import net.minestom.server.entity.Player
 import net.minestom.server.entity.attribute.Attribute
 import net.minestom.server.event.player.PlayerDeathEvent
 import net.minestom.server.event.player.PlayerSpawnEvent
+import net.minestom.server.item.ItemComponent
 import net.minestom.server.item.ItemStack
 import net.minestom.server.item.Material
 import net.minestom.server.network.packet.server.play.TeamsPacket
@@ -260,7 +261,7 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
             }
         })
         val useDisguiseItem = ItemStack.builder(Material.SCAFFOLDING)
-            .customName(Component.text("Change Block (right-click)").noItalic())
+            .set(ItemComponent.ITEM_NAME, Component.text("Change Block ", NamedTextColor.AQUA) + Component.text("(Right click)", NamedTextColor.GRAY))
             .build()
         use(BlockDisguisesModule(useDisguiseItem = useDisguiseItem))
 
