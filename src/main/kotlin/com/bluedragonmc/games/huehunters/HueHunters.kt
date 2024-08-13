@@ -1,9 +1,6 @@
 package com.bluedragonmc.games.huehunters
 
-import com.bluedragonmc.games.huehunters.server.module.AsymmetricTeamsModule
-import com.bluedragonmc.games.huehunters.server.module.BlockDisguisesModule
-import com.bluedragonmc.games.huehunters.server.module.BlockReplacerModule
-import com.bluedragonmc.games.huehunters.server.module.ColorXrayModule
+import com.bluedragonmc.games.huehunters.server.module.*
 import com.bluedragonmc.server.BRAND_COLOR_PRIMARY_1
 import com.bluedragonmc.server.BRAND_COLOR_PRIMARY_2
 import com.bluedragonmc.server.Game
@@ -80,6 +77,7 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
         use(OldCombatModule(allowDamage = true, allowKnockback = true))
         use(PlayerResetModule(defaultGameMode = GameMode.ADVENTURE))
         use(SidebarModule(title = name))
+        use(VoteStartModule())
         val binding = getModule<SidebarModule>().bind {
             val statusLine = when (state) {
                 GameState.SERVER_STARTING, GameState.WAITING -> {
@@ -111,9 +109,11 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
                     if (it == -1) order.size else it
                 }
             }.map { player ->
-                player.displayName ?: player.name.withColor(
-                    getModule<TeamModule>().getTeam(player)?.name?.color() ?: NamedTextColor.GRAY
-                )
+                var color = getModule<TeamModule>().getTeam(player)?.name?.color()
+                if (color == null && (state == GameState.WAITING || state == GameState.STARTING)) {
+                    color = if(getModule<VoteStartModule>().hasVoted(player)) NamedTextColor.GREEN else NamedTextColor.GRAY
+                }
+                player.displayName ?: player.name.withColor(color ?: NamedTextColor.GRAY)
             }
 
             listOf(
@@ -127,7 +127,7 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
         handleEvent<PlayerSpawnEvent> { binding.update() }
         handleEvent<GameStateChangedEvent> { binding.update() }
         MinecraftServer.getSchedulerManager().buildTask {
-            if (state == GameState.INGAME) binding.update()
+            if (state != GameState.ENDING) binding.update()
         }.repeat(Duration.ofMillis(500)).schedule().manage(this)
 
         var minuteWarned = false
