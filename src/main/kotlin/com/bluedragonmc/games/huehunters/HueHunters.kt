@@ -66,7 +66,11 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
         )
 
         use(AnvilFileMapProviderModule(Paths.get("worlds/$name/$mapName"), CustomGeneratorInstanceModule.getFullbrightDimension()))
-        use(ConfigModule("huehunters.yml"))
+        use(ConfigModule("huehunters.yml")) { module ->
+            val floorHeight = module.getConfig().node("world", "floorHeight").getDouble(63.0)
+            use(VoidSoundModule(threshold = floorHeight))
+            use(VoidDeathModule(threshold = floorHeight - 200, respawnMode = false))
+        }
         use(DoorsModule())
         use(FallDamageModule())
         use(InstanceContainerModule()) { module ->
@@ -145,6 +149,13 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
                             Component.text("seconds remaining", BRAND_COLOR_PRIMARY_2),
                             Title.Times.times(Duration.ZERO, Duration.ofSeconds(2), Duration.ofSeconds(1))
                         ))
+                        playSound(Sound.sound(
+                            SoundEvent.BLOCK_BEACON_POWER_SELECT,
+                            Sound.Source.RECORD,
+                            1.0f,
+                            1.0f
+                        )
+                        )
                     } else if (timeRemaining!! in 1..10) {
                         showTitle(Title.title(
                             Component.text(timeRemaining.toString(), BRAND_COLOR_PRIMARY_1),
@@ -229,8 +240,7 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
         use(SpawnpointModule(SpawnpointModule.ConfigSpawnpointProvider(allowRandomOrder = true)))
         use(SpectatorModule(spectateOnDeath = false, spectateOnLeave = true))
         use(TeamModule(autoTeams = false, allowFriendlyFire = false)) { module -> module.teams.addAll(listOf(seekersTeam, helpersTeam, hidersTeam))}
-        use(TimedRespawnModule(seconds = 5))
-        use(VoidDeathModule(0.0, respawnMode = false))
+        use(TimedRespawnModule(seconds = 1))
         use(CustomDeathMessageModule())
         use(WinModule(winCondition = WinModule.WinCondition.LAST_TEAM_ALIVE))
         use(
