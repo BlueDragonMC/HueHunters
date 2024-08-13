@@ -1,5 +1,7 @@
 package com.bluedragonmc.games.huehunters.server.module
 
+import com.bluedragonmc.server.BRAND_COLOR_PRIMARY_1
+import com.bluedragonmc.server.BRAND_COLOR_PRIMARY_2
 import com.bluedragonmc.server.Game
 import com.bluedragonmc.server.event.PlayerLeaveGameEvent
 import com.bluedragonmc.server.module.DependsOn
@@ -138,7 +140,13 @@ class BlockDisguisesModule(val useDisguiseItem: ItemStack) : GameModule() {
     }
 
     private fun disguisePlayer(player: Player, block: Block) {
-        player.sendMessage(Component.text("You are now a ") + Component.translatable(block.registry().translationKey()))
+        player.sendMessage(Component.text("You are now a ", BRAND_COLOR_PRIMARY_2) + Component.translatable(block.registry().translationKey(), BRAND_COLOR_PRIMARY_1))
+        player.playSound(Sound.sound(
+            SoundEvent.ENTITY_BREEZE_JUMP,
+            Sound.Source.PLAYER,
+            0.5f,
+            0.7f
+        ))
         val wasGlowing = disguises[player]?.displayEntity?.isGlowing == true
         if (isDisguised(player)) {
             disguises[player]!!.setBlock(block)

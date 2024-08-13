@@ -4,6 +4,7 @@ import com.bluedragonmc.server.Game
 import com.bluedragonmc.server.module.GameModule
 import com.bluedragonmc.server.module.config.ConfigModule
 import com.bluedragonmc.server.utils.*
+import net.kyori.adventure.sound.Sound
 import net.minestom.server.MinecraftServer
 import net.minestom.server.coordinate.Pos
 import net.minestom.server.coordinate.Vec
@@ -15,11 +16,13 @@ import net.minestom.server.entity.metadata.display.AbstractDisplayMeta
 import net.minestom.server.entity.metadata.display.BlockDisplayMeta
 import net.minestom.server.event.Event
 import net.minestom.server.event.EventNode
+import net.minestom.server.event.player.PlayerChangeHeldSlotEvent
 import net.minestom.server.event.player.PlayerTickEvent
 import net.minestom.server.instance.block.Block
 import net.minestom.server.item.Material
 import net.minestom.server.network.packet.server.play.BlockChangePacket
 import net.minestom.server.network.packet.server.play.EntityMetaDataPacket
+import net.minestom.server.sound.SoundEvent
 import net.minestom.server.timer.TaskSchedule
 import org.spongepowered.configurate.ConfigurationNode
 import java.time.Duration
@@ -30,6 +33,17 @@ abstract class ColorXrayModule(val radius: Int = 5) : GameModule() {
     final override fun initialize(parent: Game, eventNode: EventNode<Event>) {
         // Keys are colors, values are lists of blocks
         baseConfigNode = parent.getModule<ConfigModule>().getConfig().node("xray")
+
+        eventNode.addListener(PlayerChangeHeldSlotEvent::class.java) { event ->
+            if (!isXrayEnabled(event.player)) return@addListener
+            event.player.playSound(Sound.sound(
+                SoundEvent.BLOCK_NOTE_BLOCK_HAT,
+                Sound.Source.PLAYER,
+                1.0f,
+                1.0f
+            )
+            )
+        }
 
         eventNode.addListener(PlayerTickEvent::class.java) { event ->
             val p = event.player
@@ -122,6 +136,7 @@ abstract class ColorXrayModule(val radius: Int = 5) : GameModule() {
     private fun playDisappearEffect(player: Player, block: DisappearedBlock) {
         player.instance.setBlock(block.position, if(block.block.isFullCube()) Block.BARRIER else Block.AIR)
         player.sendPacket(BlockChangePacket(block.position, Block.AIR))
+        player.instance.playSound(Sound.sound(SoundEvent.BLOCK_BUBBLE_COLUMN_BUBBLE_POP, Sound.Source.BLOCK, 2.0f, 0.7f))
 
         val temp = Entity(EntityType.BLOCK_DISPLAY)
         val meta = temp.entityMeta as BlockDisplayMeta
@@ -159,9 +174,11 @@ abstract class ColorXrayModule(val radius: Int = 5) : GameModule() {
             meta.transformationInterpolationDuration = EFFECT_DURATION
             meta.translation = Vec.ZERO
             meta.setNotifyAboutChanges(true)
+            player.instance.playSound(Sound.sound(SoundEvent.BLOCK_BUBBLE_COLUMN_BUBBLE_POP, Sound.Source.BLOCK, 2.0f, 1.3f))
         }
 
         MinecraftServer.getSchedulerManager().buildTask {
+            if (!player.isOnline) return@buildTask
             block.displayEntity?.scheduleRemove(Duration.ofMillis(50))
             player.instance.setBlock(block.position, block.block)
         }.delay(TaskSchedule.tick(EFFECT_DURATION)).schedule()
