@@ -6,6 +6,7 @@ import com.bluedragonmc.server.module.DependsOn
 import com.bluedragonmc.server.module.GameModule
 import com.bluedragonmc.server.module.combat.OldCombatModule
 import com.bluedragonmc.server.module.minigame.SpectatorModule
+import com.bluedragonmc.server.utils.isFullCube
 import com.bluedragonmc.server.utils.plus
 import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
@@ -54,7 +55,7 @@ class BlockDisguisesModule(val useDisguiseItem: ItemStack) : GameModule() {
             val itemStack = event.player.itemInMainHand
             if (!itemStack.isSimilar(useDisguiseItem)) return@addListener
             val block = event.player.instance.getBlock(event.position)
-            if (!parent.getModule<ColorXrayModule>().getDisappearableBlocks().contains(block.registry().material())) {
+            if (!parent.getModule<ColorXrayModule>().getDisappearableBlocks().contains(block.registry().material()) || !block.isFullCube()) {
                 event.player.sendMessage(
                     Component.text(
                         "You can't disguise as ",
@@ -130,6 +131,9 @@ class BlockDisguisesModule(val useDisguiseItem: ItemStack) : GameModule() {
     override fun deinitialize() {
         while (disguises.keys.size > 0) {
             undisguisePlayer(disguises.keys.first())
+        }
+        parent.players.forEach { player ->
+            player.getAttribute(Attribute.GENERIC_SCALE).baseValue = 1.0
         }
     }
 
