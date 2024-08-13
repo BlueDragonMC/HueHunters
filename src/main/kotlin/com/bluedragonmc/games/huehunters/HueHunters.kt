@@ -4,6 +4,7 @@ import com.bluedragonmc.games.huehunters.server.module.AsymmetricTeamsModule
 import com.bluedragonmc.games.huehunters.server.module.BlockDisguisesModule
 import com.bluedragonmc.games.huehunters.server.module.BlockReplacerModule
 import com.bluedragonmc.games.huehunters.server.module.ColorXrayModule
+import com.bluedragonmc.server.BRAND_COLOR_PRIMARY_1
 import com.bluedragonmc.server.BRAND_COLOR_PRIMARY_2
 import com.bluedragonmc.server.Game
 import com.bluedragonmc.server.event.GameStartEvent
@@ -26,6 +27,7 @@ import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
+import net.kyori.adventure.title.Title
 import net.minestom.server.MinecraftServer
 import net.minestom.server.entity.GameMode
 import net.minestom.server.entity.Player
@@ -128,14 +130,36 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
             if (state == GameState.INGAME) binding.update()
         }.repeat(Duration.ofMillis(500)).schedule().manage(this)
 
+        var minuteWarned = false
         MinecraftServer.getSchedulerManager().buildTask {
             if (timeRemaining != null) {
-                if (timeRemaining!! <= 0) {
+                if (timeRemaining!! <= 1) {
                     // When time runs out, the hiders win
                     getModule<WinModule>().declareWinner(hidersTeam)
                 } else {
                     timeRemaining = timeRemaining!! - 1
+                    if (timeRemaining!! <= 60 && !minuteWarned) {
+                        minuteWarned = true
+                        showTitle(Title.title(
+                            Component.text(timeRemaining.toString(), BRAND_COLOR_PRIMARY_1),
+                            Component.text("seconds remaining", BRAND_COLOR_PRIMARY_2),
+                            Title.Times.times(Duration.ZERO, Duration.ofSeconds(2), Duration.ofSeconds(1))
+                        ))
+                    } else if (timeRemaining!! in 1..10) {
+                        showTitle(Title.title(
+                            Component.text(timeRemaining.toString(), BRAND_COLOR_PRIMARY_1),
+                            Component.empty(),
+                            Title.Times.times(Duration.ZERO, Duration.ofSeconds(2), Duration.ofSeconds(1))
+                        ))
+                        playSound(Sound.sound(
+                            SoundEvent.BLOCK_NOTE_BLOCK_BASS,
+                            Sound.Source.BLOCK,
+                            1.0f,
+                            1.5f
+                        ))
+                    }
                 }
+                binding.update()
             }
         }.repeat(Duration.ofSeconds(1)).schedule().manage(this)
 
@@ -169,10 +193,11 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
                 }.delay(Duration.ofSeconds(5)).schedule().manage(this)
             } else if (team == seekersTeam) {
                 if (timeRemaining != null) {
-                    timeRemaining = timeRemaining!! - 40
-                    this.sendActionBar(Component.text("40 seconds have been removed from the game clock.", BRAND_COLOR_PRIMARY_2))
-                    this.playSound(Sound.sound(SoundEvent.BLOCK_VAULT_DEACTIVATE, Sound.Source.PLAYER, 1.0f, 1.0f))               }
-
+                    val timeRemoved = 40 / seekersTeam.players.size
+                    timeRemaining = timeRemaining!! - timeRemoved
+                    this.sendActionBar(Component.text("$timeRemoved seconds have been removed from the game clock.", BRAND_COLOR_PRIMARY_2))
+                    this.playSound(Sound.sound(SoundEvent.BLOCK_VAULT_DEACTIVATE, Sound.Source.PLAYER, 1.0f, 1.0f))
+                }
             }
         }
 
@@ -186,10 +211,12 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
                     (event.target as Player).playSound(Sound.sound(SoundEvent.ENCHANT_THORNS_HIT, Sound.Source.HOSTILE, 1f, 1f))
                     (event.target as Player).sendMessage(Component.text("You have been tagged! ", NamedTextColor.DARK_RED, TextDecoration.BOLD) + Component.text("You are visible to all seekers for 5 seconds.", NamedTextColor.RED).decoration(TextDecoration.BOLD, false))
                 }
+                seekersTeam.playSound(Sound.sound(SoundEvent.ENCHANT_THORNS_HIT, Sound.Source.PLAYER, 1f, 1f))
+                seekersTeam.sendActionBar(Component.text("A hider has been tagged by one of your helpers!", BRAND_COLOR_PRIMARY_2))
                 disguise.displayEntity.isGlowing = true
                 MinecraftServer.getSchedulerManager().buildTask {
                     disguise.displayEntity.isGlowing = false
-                }.delay(Duration.ofSeconds(5)).schedule().manage(this)
+                }.delay(Duration.ofSeconds(7)).schedule().manage(this)
             }
             if (attackerTeam == helpersTeam && targetTeam == seekersTeam) {
                 event.isCancelled = true
