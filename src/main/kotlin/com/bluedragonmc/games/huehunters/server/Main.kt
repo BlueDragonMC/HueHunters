@@ -15,6 +15,9 @@ import net.kyori.adventure.text.Component
 import net.minestom.server.MinecraftServer
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent
 import net.minestom.server.event.player.PlayerSpawnEvent
+import net.minestom.server.instance.block.BlockHandler
+import net.minestom.server.tag.Tag
+import net.minestom.server.utils.NamespaceID
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -34,6 +37,23 @@ fun main() {
     Environment.setEnvironment(StubEnvironment())
 
     GlobalTranslation.hook()
+
+    MinecraftServer.getBlockManager().registerHandler("minecraft:sign") {
+        object : BlockHandler {
+            override fun getNamespaceId(): NamespaceID {
+                return NamespaceID.from("minecraft:sign")
+            }
+
+            override fun getBlockEntityTags(): Collection<Tag<*>> {
+                return listOf(
+                    // https://minecraft.wiki/w/Sign#Block_data
+                    Tag.Byte("is_waxed"),
+                    Tag.NBT("front_text"),
+                    Tag.NBT("back_text"),
+                )
+            }
+        }
+    }
 
     Permissions.initialize(object: PermissionManager {
         override fun getMetadata(player: UUID): PlayerMeta = PlayerMeta(
