@@ -4,10 +4,10 @@ import com.bluedragonmc.games.huehunters.HHPlayer
 import com.bluedragonmc.games.huehunters.HueHunters
 import com.bluedragonmc.games.huehunters.StubDatabaseConnection
 import com.bluedragonmc.games.huehunters.StubEnvironment
+import com.bluedragonmc.games.huehunters.server.command.MapCommand
 import com.bluedragonmc.games.huehunters.server.command.StartCommand
 import com.bluedragonmc.server.ALT_COLOR_1
 import com.bluedragonmc.server.api.*
-import com.bluedragonmc.server.module.minigame.SpawnpointModule
 import com.bluedragonmc.server.service.Database
 import com.bluedragonmc.server.service.Messaging
 import com.bluedragonmc.server.service.Permissions
@@ -35,6 +35,7 @@ fun main() {
     Database.initialize(StubDatabaseConnection())
 
     Environment.setEnvironment(StubEnvironment())
+    val queue = Environment.queue as StubEnvironment.SingleGameQueue
 
     GlobalTranslation.hook()
 
@@ -68,18 +69,19 @@ fun main() {
     })
 
     MinecraftServer.getCommandManager().register(StartCommand("start"))
+    MinecraftServer.getCommandManager().register(MapCommand("map"))
 
-    val game = HueHunters(mapName = "Warehouse")
-    game.init()
+    HueHunters(queue.selectedMap).init()
+
+    val spawningInstance = MinecraftServer.getInstanceManager().createInstanceContainer()
 
     globalEventHandler.addListener(AsyncPlayerConfigurationEvent::class.java) { event ->
-        event.spawningInstance = game.getInstance()
+        event.spawningInstance = spawningInstance
     }
 
     globalEventHandler.addListener(PlayerSpawnEvent::class.java) { event ->
-        if (event.instance == game.getInstance() && !game.players.contains(event.player)) {
-            game.addPlayer(event.player, false)
-            event.player.teleport(game.getModule<SpawnpointModule>().spawnpointProvider.getSpawnpoint(event.player))
+        if (event.instance == spawningInstance) {
+            queue.queue(event.player)
         }
     }
 

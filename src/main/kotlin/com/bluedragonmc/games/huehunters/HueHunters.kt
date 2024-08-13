@@ -4,6 +4,8 @@ import com.bluedragonmc.games.huehunters.server.module.AsymmetricTeamsModule
 import com.bluedragonmc.games.huehunters.server.module.BlockDisguisesModule
 import com.bluedragonmc.games.huehunters.server.module.BlockReplacerModule
 import com.bluedragonmc.games.huehunters.server.module.ColorXrayModule
+import com.bluedragonmc.server.BRAND_COLOR_PRIMARY_1
+import com.bluedragonmc.server.BRAND_COLOR_PRIMARY_2
 import com.bluedragonmc.server.Game
 import com.bluedragonmc.server.event.GameStartEvent
 import com.bluedragonmc.server.event.GameStateChangedEvent
@@ -11,7 +13,6 @@ import com.bluedragonmc.server.event.TeamAssignedEvent
 import com.bluedragonmc.server.module.combat.CustomDeathMessageModule
 import com.bluedragonmc.server.module.combat.OldCombatModule
 import com.bluedragonmc.server.module.config.ConfigModule
-import com.bluedragonmc.server.module.gameplay.ActionBarModule
 import com.bluedragonmc.server.module.gameplay.InventoryPermissionsModule
 import com.bluedragonmc.server.module.gameplay.SidebarModule
 import com.bluedragonmc.server.module.gameplay.WorldPermissionsModule
@@ -26,8 +27,8 @@ import net.kyori.adventure.sound.Sound
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
+import net.kyori.adventure.title.Title
 import net.minestom.server.MinecraftServer
-import net.minestom.server.coordinate.Pos
 import net.minestom.server.entity.GameMode
 import net.minestom.server.entity.Player
 import net.minestom.server.entity.attribute.Attribute
@@ -46,7 +47,7 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
         var timeRemaining: Int? = null
 
         onGameStart {
-            timeRemaining = 60 * 4 // 4 minutes
+            timeRemaining = 150 // 2:30 minutes
         }
 
         val hidersTeam = TeamModule.Team(
@@ -67,7 +68,6 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
             allowFriendlyFire = false
         )
 
-        use(ActionBarModule())
         use(AnvilFileMapProviderModule(Paths.get("worlds/$name/$mapName"), CustomGeneratorInstanceModule.getFullbrightDimension()))
         use(ConfigModule("huehunters.yml"))
         use(DoorsModule())
@@ -76,7 +76,7 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
             use(BlockReplacerModule(getOwnedInstances()))
         }
         use(InventoryPermissionsModule(allowDropItem = false, allowMoveItem = false))
-        use(MOTDModule(Component.text("Hiders disguised as blocks must avoid\n")))
+        use(MOTDModule(Component.text("Hiders disguised as blocks must avoid\nthe Hunters, who can use the colors in their inventory\nto bend reality and make real blocks disappear.")))
         use(OldCombatModule(allowDamage = true, allowKnockback = true))
         use(PlayerResetModule(defaultGameMode = GameMode.ADVENTURE))
         use(SidebarModule(title = name))
@@ -130,19 +130,46 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
             if (state == GameState.INGAME) binding.update()
         }.repeat(Duration.ofMillis(500)).schedule().manage(this)
 
+        var minuteWarned = false
         MinecraftServer.getSchedulerManager().buildTask {
             if (timeRemaining != null) {
-                if (timeRemaining!! <= 0) {
+                if (timeRemaining!! <= 1) {
                     // When time runs out, the hiders win
                     getModule<WinModule>().declareWinner(hidersTeam)
                 } else {
                     timeRemaining = timeRemaining!! - 1
+                    if (timeRemaining!! <= 60 && !minuteWarned) {
+                        minuteWarned = true
+                        showTitle(Title.title(
+                            Component.text(timeRemaining.toString(), BRAND_COLOR_PRIMARY_1),
+                            Component.text("seconds remaining", BRAND_COLOR_PRIMARY_2),
+                            Title.Times.times(Duration.ZERO, Duration.ofSeconds(2), Duration.ofSeconds(1))
+                        ))
+                    } else if (timeRemaining!! in 1..10) {
+                        showTitle(Title.title(
+                            Component.text(timeRemaining.toString(), BRAND_COLOR_PRIMARY_1),
+                            Component.empty(),
+                            Title.Times.times(Duration.ZERO, Duration.ofSeconds(2), Duration.ofSeconds(1))
+                        ))
+                        playSound(Sound.sound(
+                            SoundEvent.BLOCK_NOTE_BLOCK_BASS,
+                            Sound.Source.BLOCK,
+                            1.0f,
+                            1.5f
+                        ))
+                    }
                 }
+                binding.update()
             }
         }.repeat(Duration.ofSeconds(1)).schedule().manage(this)
 
         handleEvent<PlayerDeathEvent> { event ->
-            if (getModule<TeamModule>().getTeam(event.player) == hidersTeam) {
+            val team = getModule<TeamModule>().getTeam(event.player)
+            if (team == hidersTeam) {
+                val timeAdded = 20 / seekersTeam.players.size
+                timeRemaining = timeRemaining!! + timeAdded
+                this.sendActionBar(Component.text("$timeAdded seconds have been added to the game clock.", BRAND_COLOR_PRIMARY_2))
+                this.playSound(Sound.sound(SoundEvent.BLOCK_VAULT_ACTIVATE, Sound.Source.PLAYER, 1.0f, 1.0f))
                 hidersTeam.removePlayer(event.player)
 
                 if (hidersTeam.players.isEmpty()) {
@@ -164,6 +191,13 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
                     event.player.getAttribute(Attribute.GENERIC_SCALE).baseValue = 0.5
                     event.player.getAttribute(Attribute.GENERIC_MAX_HEALTH).baseValue = 6.0
                 }.delay(Duration.ofSeconds(5)).schedule().manage(this)
+            } else if (team == seekersTeam) {
+                if (timeRemaining != null) {
+                    val timeRemoved = 40 / seekersTeam.players.size
+                    timeRemaining = timeRemaining!! - timeRemoved
+                    this.sendActionBar(Component.text("$timeRemoved seconds have been removed from the game clock.", BRAND_COLOR_PRIMARY_2))
+                    this.playSound(Sound.sound(SoundEvent.BLOCK_VAULT_DEACTIVATE, Sound.Source.PLAYER, 1.0f, 1.0f))
+                }
             }
         }
 
@@ -177,10 +211,12 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
                     (event.target as Player).playSound(Sound.sound(SoundEvent.ENCHANT_THORNS_HIT, Sound.Source.HOSTILE, 1f, 1f))
                     (event.target as Player).sendMessage(Component.text("You have been tagged! ", NamedTextColor.DARK_RED, TextDecoration.BOLD) + Component.text("You are visible to all seekers for 5 seconds.", NamedTextColor.RED).decoration(TextDecoration.BOLD, false))
                 }
+                seekersTeam.playSound(Sound.sound(SoundEvent.ENCHANT_THORNS_HIT, Sound.Source.PLAYER, 1f, 1f))
+                seekersTeam.sendActionBar(Component.text("A hider has been tagged by one of your helpers!", BRAND_COLOR_PRIMARY_2))
                 disguise.displayEntity.isGlowing = true
                 MinecraftServer.getSchedulerManager().buildTask {
                     disguise.displayEntity.isGlowing = false
-                }.delay(Duration.ofSeconds(5)).schedule().manage(this)
+                }.delay(Duration.ofSeconds(7)).schedule().manage(this)
             }
             if (attackerTeam == helpersTeam && targetTeam == seekersTeam) {
                 event.isCancelled = true
@@ -190,7 +226,7 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
             }
         }
 
-        use(SpawnpointModule(SpawnpointModule.TestSpawnpointProvider(Pos(0.0, 68.0, 7.0))))
+        use(SpawnpointModule(SpawnpointModule.ConfigSpawnpointProvider(allowRandomOrder = true)))
         use(SpectatorModule(spectateOnDeath = false, spectateOnLeave = true))
         use(TeamModule(autoTeams = false, allowFriendlyFire = false)) { module -> module.teams.addAll(listOf(seekersTeam, helpersTeam, hidersTeam))}
         use(TimedRespawnModule(seconds = 5))

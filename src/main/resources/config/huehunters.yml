@@ -4,11 +4,11 @@ xray:
     - minecraft:red_wool
     - minecraft:crimson_stem
     - minecraft:tnt
-    - minecraft:waxed_copper_door
   orange:
     - minecraft:orange_concrete
     - minecraft:orange_wool
     - minecraft:waxed_copper_block
+    - minecraft:waxed_copper_door
   blue:
     - minecraft:blue_concrete
     - minecraft:blue_wool

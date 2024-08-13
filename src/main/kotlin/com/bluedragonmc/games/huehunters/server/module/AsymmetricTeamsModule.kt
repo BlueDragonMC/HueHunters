@@ -20,6 +20,7 @@ import net.minestom.server.event.EventNode
 import net.minestom.server.event.player.PlayerSpawnEvent
 import net.minestom.server.network.packet.server.play.TeamsPacket
 import java.time.Duration
+import kotlin.math.ceil
 
 /**
  * This module creates Hiders and Seekers teams and assigns players to them when the game starts.
@@ -34,9 +35,14 @@ class AsymmetricTeamsModule(val seekersTeam: TeamModule.Team, val hidersTeam: Te
         eventNode.addListener(GameStartEvent::class.java) { event ->
             // Make teams when game starts
             val players = ArrayList(parent.players)
-            val seeker = players.random()
-            players.remove(seeker)
-            seekersTeam.addPlayer(seeker)
+            val numSeekers = ceil(players.size / 5.0).toInt()
+            logger.debug("$numSeekers seekers:")
+            for (i in 1 .. numSeekers) {
+                val seeker = players.random()
+                logger.debug("${seeker.username} selected")
+                players.remove(seeker)
+                seekersTeam.addPlayer(seeker)
+            }
             players.forEach { player -> hidersTeam.addPlayer(player) }
             parent.getModule<TeamModule>().teams.add(seekersTeam)
             parent.getModule<TeamModule>().teams.add(hidersTeam)
