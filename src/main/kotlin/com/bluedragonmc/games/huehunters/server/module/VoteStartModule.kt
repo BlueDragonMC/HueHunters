@@ -3,6 +3,7 @@ package com.bluedragonmc.games.huehunters.server.module
 import com.bluedragonmc.server.BRAND_COLOR_PRIMARY_2
 import com.bluedragonmc.server.Game
 import com.bluedragonmc.server.event.GameStartEvent
+import com.bluedragonmc.server.event.GameStateChangedEvent
 import com.bluedragonmc.server.event.PlayerLeaveGameEvent
 import com.bluedragonmc.server.module.GameModule
 import com.bluedragonmc.server.utils.GameState
@@ -87,13 +88,7 @@ class VoteStartModule : GameModule() {
                         Component.text("GO!", NamedTextColor.GREEN)
                             .decorate(TextDecoration.BOLD)
                     )
-                    for (player in parent.players) {
-                        for ((index, stack) in player.inventory.itemStacks.withIndex()) {
-                            if (stack == voteStartItem || stack == cancelVoteItem) {
-                                player.inventory.setItemStack(index, ItemStack.AIR)
-                            }
-                        }
-                    }
+                    clearPlayerInventories()
                     parent.callEvent(GameStartEvent(parent))
                     parent.state = GameState.INGAME
                     countdown = null
@@ -104,11 +99,26 @@ class VoteStartModule : GameModule() {
                 countdown = countdown?.minus(1)
             }
         }.repeat(Duration.ofSeconds(1)).schedule().manage(parent)
+        eventNode.addListener(GameStateChangedEvent::class.java) { event ->
+            if (event.newState != GameState.WAITING && event.newState != GameState.STARTING) {
+                clearPlayerInventories()
+            }
+        }
     }
 
     private fun fill(player: Player, item: ItemStack) {
         for (i in 0..8) {
             player.inventory.setItemStack(i, item)
+        }
+    }
+
+    private fun clearPlayerInventories() {
+        for (player in parent.players) {
+            for ((index, stack) in player.inventory.itemStacks.withIndex()) {
+                if (stack == voteStartItem || stack == cancelVoteItem) {
+                    player.inventory.setItemStack(index, ItemStack.AIR)
+                }
+            }
         }
     }
 

@@ -14,8 +14,8 @@ class StartCommand(name: String) : BlueDragonCommand(name = name, block = {
             player.sendMessage(Component.text("You are not in a game", NamedTextColor.RED))
             return@syntax
         }
-        game.callEvent(GameStartEvent(game))
         game.state = GameState.INGAME
+        game.callEvent(GameStartEvent(game))
         sender.sendMessage(Component.text("Game started successfully", NamedTextColor.GREEN))
     }
 })
