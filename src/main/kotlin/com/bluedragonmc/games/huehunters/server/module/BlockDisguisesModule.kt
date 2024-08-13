@@ -219,8 +219,10 @@ data class DamageableBlockEntity(
             }
             owner.playSound(Sound.sound(SoundEvent.BLOCK_NOTE_BLOCK_PLING, Sound.Source.PLAYER, 1.0f, 2.0f))
         }
-        displayMeta.transformationInterpolationDuration = 1
+        displayMeta.setNotifyAboutChanges(false)
+        displayMeta.posRotInterpolationDuration = 1
         displayMeta.transformationInterpolationStartDelta = -1
+        displayMeta.setNotifyAboutChanges(true)
         displayEntity.teleport(newPos)
         val hitboxPos = Pos(newPos.x + 0.5, newPos.y, newPos.z + 0.5)
         interactionEntity.teleport(hitboxPos)
