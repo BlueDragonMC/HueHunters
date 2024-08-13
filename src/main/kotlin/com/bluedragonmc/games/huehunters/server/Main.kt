@@ -7,7 +7,6 @@ import com.bluedragonmc.games.huehunters.StubEnvironment
 import com.bluedragonmc.games.huehunters.server.command.StartCommand
 import com.bluedragonmc.server.ALT_COLOR_1
 import com.bluedragonmc.server.api.*
-import com.bluedragonmc.server.module.minigame.SpawnpointModule
 import com.bluedragonmc.server.service.Database
 import com.bluedragonmc.server.service.Messaging
 import com.bluedragonmc.server.service.Permissions
@@ -49,17 +48,17 @@ fun main() {
 
     MinecraftServer.getCommandManager().register(StartCommand("start"))
 
-    val game = HueHunters(mapName = "Warehouse")
-    game.init()
+    HueHunters("Warehouse").init()
+
+    val spawningInstance = MinecraftServer.getInstanceManager().createInstanceContainer()
 
     globalEventHandler.addListener(AsyncPlayerConfigurationEvent::class.java) { event ->
-        event.spawningInstance = game.getInstance()
+        event.spawningInstance = spawningInstance
     }
 
     globalEventHandler.addListener(PlayerSpawnEvent::class.java) { event ->
-        if (event.instance == game.getInstance() && !game.players.contains(event.player)) {
-            game.addPlayer(event.player, false)
-            event.player.teleport(game.getModule<SpawnpointModule>().spawnpointProvider.getSpawnpoint(event.player))
+        if (event.instance == spawningInstance) {
+            (Environment.queue as StubEnvironment.SingleGameQueue).queue(event.player)
         }
     }
 

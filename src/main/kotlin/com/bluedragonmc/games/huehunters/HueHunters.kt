@@ -4,6 +4,7 @@ import com.bluedragonmc.games.huehunters.server.module.AsymmetricTeamsModule
 import com.bluedragonmc.games.huehunters.server.module.BlockDisguisesModule
 import com.bluedragonmc.games.huehunters.server.module.BlockReplacerModule
 import com.bluedragonmc.games.huehunters.server.module.ColorXrayModule
+import com.bluedragonmc.server.BRAND_COLOR_PRIMARY_2
 import com.bluedragonmc.server.Game
 import com.bluedragonmc.server.event.GameStartEvent
 import com.bluedragonmc.server.event.GameStateChangedEvent
@@ -27,7 +28,6 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextDecoration
 import net.minestom.server.MinecraftServer
-import net.minestom.server.coordinate.Pos
 import net.minestom.server.entity.GameMode
 import net.minestom.server.entity.Player
 import net.minestom.server.entity.attribute.Attribute
@@ -46,7 +46,7 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
         var timeRemaining: Int? = null
 
         onGameStart {
-            timeRemaining = 60 * 4 // 4 minutes
+            timeRemaining = 150 // 2:30 minutes
         }
 
         val hidersTeam = TeamModule.Team(
@@ -76,7 +76,7 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
             use(BlockReplacerModule(getOwnedInstances()))
         }
         use(InventoryPermissionsModule(allowDropItem = false, allowMoveItem = false))
-        use(MOTDModule(Component.text("Hiders disguised as blocks must avoid\n")))
+        use(MOTDModule(Component.text("Hiders disguised as blocks must avoid\nthe Hunters, who can use the colors in their inventory\nto bend reality and make real blocks disappear.")))
         use(OldCombatModule(allowDamage = true, allowKnockback = true))
         use(PlayerResetModule(defaultGameMode = GameMode.ADVENTURE))
         use(SidebarModule(title = name))
@@ -142,7 +142,11 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
         }.repeat(Duration.ofSeconds(1)).schedule().manage(this)
 
         handleEvent<PlayerDeathEvent> { event ->
-            if (getModule<TeamModule>().getTeam(event.player) == hidersTeam) {
+            val team = getModule<TeamModule>().getTeam(event.player)
+            if (team == hidersTeam) {
+                timeRemaining = timeRemaining!! + 20
+                this.sendActionBar(Component.text("20 seconds have been added to the game clock.", BRAND_COLOR_PRIMARY_2))
+                this.playSound(Sound.sound(SoundEvent.BLOCK_VAULT_ACTIVATE, Sound.Source.PLAYER, 1.0f, 1.0f))
                 hidersTeam.removePlayer(event.player)
 
                 if (hidersTeam.players.isEmpty()) {
@@ -164,6 +168,12 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
                     event.player.getAttribute(Attribute.GENERIC_SCALE).baseValue = 0.5
                     event.player.getAttribute(Attribute.GENERIC_MAX_HEALTH).baseValue = 6.0
                 }.delay(Duration.ofSeconds(5)).schedule().manage(this)
+            } else if (team == seekersTeam) {
+                if (timeRemaining != null) {
+                    timeRemaining = timeRemaining!! - 40
+                    this.sendActionBar(Component.text("40 seconds have been removed from the game clock.", BRAND_COLOR_PRIMARY_2))
+                    this.playSound(Sound.sound(SoundEvent.BLOCK_VAULT_DEACTIVATE, Sound.Source.PLAYER, 1.0f, 1.0f))               }
+
             }
         }
 
@@ -190,7 +200,7 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
             }
         }
 
-        use(SpawnpointModule(SpawnpointModule.TestSpawnpointProvider(Pos(0.0, 68.0, 7.0))))
+        use(SpawnpointModule(SpawnpointModule.ConfigSpawnpointProvider(allowRandomOrder = true)))
         use(SpectatorModule(spectateOnDeath = false, spectateOnLeave = true))
         use(TeamModule(autoTeams = false, allowFriendlyFire = false)) { module -> module.teams.addAll(listOf(seekersTeam, helpersTeam, hidersTeam))}
         use(TimedRespawnModule(seconds = 5))
