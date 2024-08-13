@@ -6,6 +6,7 @@ import com.bluedragonmc.server.BRAND_COLOR_PRIMARY_2
 import com.bluedragonmc.server.Game
 import com.bluedragonmc.server.event.GameStartEvent
 import com.bluedragonmc.server.event.GameStateChangedEvent
+import com.bluedragonmc.server.event.PlayerLeaveGameEvent
 import com.bluedragonmc.server.event.TeamAssignedEvent
 import com.bluedragonmc.server.module.combat.CustomDeathMessageModule
 import com.bluedragonmc.server.module.combat.OldCombatModule
@@ -283,6 +284,23 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
                 player.inventory.addItemStack(ItemStack.of(Material.PURPLE_CONCRETE))
             } else if (teamName == hidersTeam.name) {
                 player.inventory.addItemStack(useDisguiseItem)
+            }
+        }
+
+        eventNode.addListener(PlayerLeaveGameEvent::class.java) { event ->
+            MinecraftServer.getSchedulerManager().scheduleNextTick {
+                // After one tick, the player that left should have been removed from their team
+                // Check for a win
+                if (hidersTeam.players.size == 0) {
+                    for (helper in ArrayList(helpersTeam.players)) {
+                        // Move helpers to the seekers team so they see the "VICTORY!" message
+                        helpersTeam.removePlayer(helper)
+                        seekersTeam.addPlayer(helper)
+                    }
+                    getModule<WinModule>().declareWinner(seekersTeam)
+                } else if (seekersTeam.players.size == 0) { // The last/only seeker left
+                    getModule<WinModule>().declareWinner(hidersTeam)
+                }
             }
         }
     }
