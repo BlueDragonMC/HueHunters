@@ -4,6 +4,7 @@ import com.bluedragonmc.games.huehunters.HHPlayer
 import com.bluedragonmc.games.huehunters.HueHunters
 import com.bluedragonmc.games.huehunters.StubDatabaseConnection
 import com.bluedragonmc.games.huehunters.StubEnvironment
+import com.bluedragonmc.games.huehunters.server.command.MapCommand
 import com.bluedragonmc.games.huehunters.server.command.StartCommand
 import com.bluedragonmc.server.ALT_COLOR_1
 import com.bluedragonmc.server.api.*
@@ -31,6 +32,7 @@ fun main() {
     Database.initialize(StubDatabaseConnection())
 
     Environment.setEnvironment(StubEnvironment())
+    val queue = Environment.queue as StubEnvironment.SingleGameQueue
 
     GlobalTranslation.hook()
 
@@ -47,8 +49,9 @@ fun main() {
     })
 
     MinecraftServer.getCommandManager().register(StartCommand("start"))
+    MinecraftServer.getCommandManager().register(MapCommand("map"))
 
-    HueHunters("Warehouse").init()
+    HueHunters(queue.selectedMap).init()
 
     val spawningInstance = MinecraftServer.getInstanceManager().createInstanceContainer()
 
@@ -58,7 +61,7 @@ fun main() {
 
     globalEventHandler.addListener(PlayerSpawnEvent::class.java) { event ->
         if (event.instance == spawningInstance) {
-            (Environment.queue as StubEnvironment.SingleGameQueue).queue(event.player)
+            queue.queue(event.player)
         }
     }
 

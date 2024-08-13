@@ -24,6 +24,7 @@ class StubEnvironment : Environment() {
         override val queue: Queue = SingleGameQueue()
 
     class SingleGameQueue : Queue() {
+        var selectedMap: String = "Warehouse"
         override fun getMaps(gameType: String): Array<File> {
             return emptyArray()
         }
@@ -38,7 +39,7 @@ class StubEnvironment : Environment() {
                 }
             }
             if (validGame == null) {
-                HueHunters("Warehouse").init()
+                HueHunters(selectedMap).init()
                 MinecraftServer.getSchedulerManager().buildTask {
                     queue(player)
                 }.delay(Duration.ofSeconds(1)).schedule()
