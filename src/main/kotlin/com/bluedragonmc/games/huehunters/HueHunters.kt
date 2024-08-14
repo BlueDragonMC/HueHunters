@@ -293,6 +293,7 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
         }
 
         eventNode.addListener(PlayerLeaveGameEvent::class.java) { event ->
+            if (state != GameState.INGAME) return@addListener
             MinecraftServer.getSchedulerManager().scheduleNextTick {
                 // After one tick, the player that left should have been removed from their team
                 // Check for a win
