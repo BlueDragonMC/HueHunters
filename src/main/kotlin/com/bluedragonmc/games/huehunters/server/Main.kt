@@ -74,6 +74,9 @@ fun main() {
     HueHunters(queue.selectedMap).init()
 
     val spawningInstance = MinecraftServer.getInstanceManager().createInstanceContainer()
+    // Prevent cleanup from removing spawning instance
+    val tag = Tag.Long("instance_inactive_since")
+    spawningInstance.setTag(tag, Long.MAX_VALUE)
 
     globalEventHandler.addListener(AsyncPlayerConfigurationEvent::class.java) { event ->
         event.spawningInstance = spawningInstance

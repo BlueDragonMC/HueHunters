@@ -10,6 +10,7 @@ import com.bluedragonmc.server.module.combat.OldCombatModule
 import com.bluedragonmc.server.module.minigame.SpectatorModule
 import com.bluedragonmc.server.module.minigame.TeamModule
 import com.bluedragonmc.server.utils.GameState
+import com.bluedragonmc.server.utils.manage
 import com.bluedragonmc.server.utils.miniMessage
 import com.bluedragonmc.server.utils.surroundWithSeparators
 import net.kyori.adventure.text.Component
@@ -20,6 +21,8 @@ import net.minestom.server.event.Event
 import net.minestom.server.event.EventNode
 import net.minestom.server.event.player.PlayerSpawnEvent
 import net.minestom.server.network.packet.server.play.TeamsPacket
+import net.minestom.server.potion.Potion
+import net.minestom.server.potion.PotionEffect
 import java.time.Duration
 import kotlin.math.ceil
 
@@ -67,6 +70,8 @@ class AsymmetricTeamsModule(val seekersTeam: TeamModule.Team, val hidersTeam: Te
                     
                     <gray>· <yellow>Hold <p2>a color in your hotbar to <yellow>hide <p2>nearby blocks of that color, revealing any disguised hiders. <green>Good luck!
                 """.trimIndent()).surroundWithSeparators())
+                player.addEffect(Potion(PotionEffect.BLINDNESS, 1, 200))
+                player.addEffect(Potion(PotionEffect.DARKNESS, 1, 200))
             }
             hidersTeam.register()
             seekersTeam.register()
@@ -81,7 +86,7 @@ class AsymmetricTeamsModule(val seekersTeam: TeamModule.Team, val hidersTeam: Te
                     combatStatus[s.key] = combatStatus.getOrDefault(s.key, 0) + 1
                     if (combatStatus[s.key]!! >= 10) s.key.health += 1.0f
                 }
-            }.repeat(Duration.ofSeconds(1)).schedule()
+            }.repeat(Duration.ofSeconds(1)).schedule().manage(parent)
         }
 
         eventNode.addListener(PlayerSpawnEvent::class.java) { event ->

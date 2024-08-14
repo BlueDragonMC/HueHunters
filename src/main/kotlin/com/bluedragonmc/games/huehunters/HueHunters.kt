@@ -46,7 +46,7 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
         var timeRemaining: Int? = null
 
         onGameStart {
-            timeRemaining = 150 // 2:30 minutes
+            timeRemaining = 160 // 2:40 minutes
         }
 
         val hidersTeam = TeamModule.Team(
@@ -135,7 +135,7 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
                 getSpacer()
             )
         }
-        handleEvent<PlayerSpawnEvent> { binding.update() }
+        handleEvent<PlayerSpawnEvent> { binding.update(); println("${it.player.username} spawned in game") }
         handleEvent<GameStateChangedEvent> { binding.update() }
         MinecraftServer.getSchedulerManager().buildTask {
             if (state != GameState.ENDING) binding.update()
