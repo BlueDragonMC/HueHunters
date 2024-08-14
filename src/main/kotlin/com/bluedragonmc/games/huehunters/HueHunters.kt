@@ -86,8 +86,13 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
         use(VoteStartModule())
         val binding = getModule<SidebarModule>().bind {
             val statusLine = when (state) {
-                GameState.SERVER_STARTING, GameState.WAITING -> {
-                    Component.text("Waiting for players...", NamedTextColor.YELLOW)
+                GameState.SERVER_STARTING, GameState.WAITING  -> {
+                    if (players.size >= 2) {
+                        val votes = players.count { getModule<VoteStartModule>().hasVoted(it) }
+                        Component.text("Vote to start ($votes/${players.size})", NamedTextColor.YELLOW)
+                    } else {
+                        Component.text("Waiting for players...", NamedTextColor.YELLOW)
+                    }
                 }
 
                 GameState.STARTING -> {
