@@ -139,7 +139,7 @@ class BlockDisguisesModule(val useDisguiseItem: ItemStack) : GameModule() {
         }
     }
 
-    private fun disguisePlayer(player: Player, block: Block) {
+    fun disguisePlayer(player: Player, block: Block) {
         player.sendMessage(Component.text("You are now a ", BRAND_COLOR_PRIMARY_2) + Component.translatable(block.registry().translationKey(), BRAND_COLOR_PRIMARY_1))
         player.playSound(Sound.sound(
             SoundEvent.ENTITY_BREEZE_JUMP,
@@ -225,7 +225,8 @@ data class DamageableBlockEntity(
                 owner.playSound(Sound.sound(SoundEvent.BLOCK_NOTE_BLOCK_PLING, Sound.Source.PLAYER, 1.0f, 0.5f))
                 return
             }
-            owner.playSound(Sound.sound(SoundEvent.BLOCK_NOTE_BLOCK_PLING, Sound.Source.PLAYER, 1.0f, 2.0f))
+            owner.playSound(Sound.sound(SoundEvent.ENTITY_BREEZE_IDLE_GROUND, Sound.Source.PLAYER, 1.0f, 1.7f))
+            owner.sendActionBar(Component.text("You have snapped to your current block.", BRAND_COLOR_PRIMARY_2))
         }
         displayMeta.setNotifyAboutChanges(false)
         displayMeta.posRotInterpolationDuration = 1
