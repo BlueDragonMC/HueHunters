@@ -70,7 +70,9 @@ class VoteStartModule : GameModule() {
         }
         eventNode.addListener(PlayerLeaveGameEvent::class.java) { event ->
             votes.remove(event.player)
-            update()
+            MinecraftServer.getSchedulerManager().scheduleNextTick {
+                update()
+            }
         }
         MinecraftServer.getSchedulerManager().buildTask {
             if (countdown != null) {
