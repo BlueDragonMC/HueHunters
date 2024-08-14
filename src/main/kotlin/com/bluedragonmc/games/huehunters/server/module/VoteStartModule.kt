@@ -150,6 +150,7 @@ class VoteStartModule : GameModule() {
             )
         }
         countdown = null
+        parent.state = GameState.WAITING
     }
 
     fun hasVoted(player: Player) = votes.contains(player)

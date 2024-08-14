@@ -51,7 +51,9 @@ class StubEnvironment : Environment() {
                 }.delay(Duration.ofSeconds(1)).schedule()
                 return
             }
-            validGame.addPlayer(player)
+            MinecraftServer.getSchedulerManager().scheduleNextTick {
+                validGame.addPlayer(player)
+            }
         }
 
         override fun queue(player: Player, gameType: CommonTypes.GameType) {
