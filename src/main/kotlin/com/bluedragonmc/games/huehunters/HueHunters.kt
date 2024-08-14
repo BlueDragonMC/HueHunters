@@ -68,7 +68,7 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
         )
 
         use(AnvilFileMapProviderModule(Paths.get("worlds/$name/$mapName"), CustomGeneratorInstanceModule.getFullbrightDimension()))
-        use(ConfigModule("huehunters.yml")) { module ->
+        use(ConfigModule()) { module ->
             val floorHeight = module.getConfig().node("world", "floorHeight").getDouble(63.0)
             use(VoidSoundModule(threshold = floorHeight))
             use(VoidDeathModule(threshold = floorHeight - 200, respawnMode = false))
@@ -270,6 +270,9 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
             state = GameState.INGAME
         }
 
+        val disguisesModule = getModule<BlockDisguisesModule>()
+        val concreteBlocks = getModule<ColorXrayModule>().getDisappearableBlocks().filter { it.name().contains("concrete") }
+
         eventNode.addListener(TeamAssignedEvent::class.java) { event ->
             val player = event.player
             val teamName = getModule<TeamModule>().getTeam(event.player)?.name
@@ -284,6 +287,7 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
                 player.inventory.addItemStack(ItemStack.of(Material.PURPLE_CONCRETE))
             } else if (teamName == hidersTeam.name) {
                 player.inventory.addItemStack(useDisguiseItem)
+                disguisesModule.disguisePlayer(player, concreteBlocks.random().block())
             }
         }
 
