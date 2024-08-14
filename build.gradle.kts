@@ -29,12 +29,15 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks.shadowJar {
-    archiveClassifier.set("")
-}
-
 tasks.build {
     dependsOn(tasks.shadowJar)
+}
+
+tasks.jar {
+    dependsOn(tasks.shadowJar)
+    manifest {
+        attributes["Main-Class"] = "com.bluedragonmc.games.huehunters.server.MainKt"
+    }
 }
 
 kotlin {
