@@ -88,11 +88,11 @@ class VoteStartModule : GameModule() {
                         Component.text("GO!", NamedTextColor.GREEN)
                             .decorate(TextDecoration.BOLD)
                     )
+                    countdown = null
                     cancelCountdown()
                     clearPlayerInventories()
                     parent.callEvent(GameStartEvent(parent))
                     parent.state = GameState.INGAME
-                    countdown = null
                     votes.clear()
                 }
 
