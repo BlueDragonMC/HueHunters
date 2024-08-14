@@ -114,17 +114,23 @@ class HueHunters(mapName: String) : Game("HueHunters", mapName) {
             }
 
             val order = listOf(seekersTeam, helpersTeam, hidersTeam)
-            val playerLines = players.sortedBy { player ->
-                order.indexOf(getModule<TeamModule>().getTeam(player)).let {
-                    // Push players that aren't in a team to the end of the list
-                    if (it == -1) order.size else it
+            val playerLines = if (players.size <= 10) {
+                players.sortedBy { player ->
+                    order.indexOf(getModule<TeamModule>().getTeam(player)).let {
+                        // Push players that aren't in a team to the end of the list
+                        if (it == -1) order.size else it
+                    }
+                }.map { player ->
+                    var color = getModule<TeamModule>().getTeam(player)?.name?.color()
+                    if (color == null && (state == GameState.WAITING || state == GameState.STARTING)) {
+                        color = if(getModule<VoteStartModule>().hasVoted(player)) NamedTextColor.GREEN else NamedTextColor.GRAY
+                    }
+                    player.displayName ?: player.name.withColor(color ?: NamedTextColor.GRAY)
                 }
-            }.map { player ->
-                var color = getModule<TeamModule>().getTeam(player)?.name?.color()
-                if (color == null && (state == GameState.WAITING || state == GameState.STARTING)) {
-                    color = if(getModule<VoteStartModule>().hasVoted(player)) NamedTextColor.GREEN else NamedTextColor.GRAY
+            } else {
+                listOf(seekersTeam, helpersTeam, hidersTeam).map { team ->
+                    team.name + Component.text(": ${team.players.size}", NamedTextColor.GRAY)
                 }
-                player.displayName ?: player.name.withColor(color ?: NamedTextColor.GRAY)
             }
 
             listOf(
