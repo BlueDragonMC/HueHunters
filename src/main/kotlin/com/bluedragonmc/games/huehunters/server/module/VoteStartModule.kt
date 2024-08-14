@@ -88,12 +88,12 @@ class VoteStartModule : GameModule() {
                         Component.text("GO!", NamedTextColor.GREEN)
                             .decorate(TextDecoration.BOLD)
                     )
+                    cancelCountdown()
                     clearPlayerInventories()
                     parent.callEvent(GameStartEvent(parent))
                     parent.state = GameState.INGAME
                     countdown = null
                     votes.clear()
-                    cancelCountdown()
                 }
 
                 countdown = countdown?.minus(1)
@@ -150,7 +150,9 @@ class VoteStartModule : GameModule() {
             )
         }
         countdown = null
-        parent.state = GameState.WAITING
+        if (parent.state == GameState.STARTING) {
+            parent.state = GameState.WAITING
+        }
     }
 
     fun hasVoted(player: Player) = votes.contains(player)
