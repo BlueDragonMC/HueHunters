@@ -10,6 +10,7 @@ import com.bluedragonmc.server.module.combat.OldCombatModule
 import com.bluedragonmc.server.module.minigame.SpectatorModule
 import com.bluedragonmc.server.module.minigame.TeamModule
 import com.bluedragonmc.server.utils.GameState
+import com.bluedragonmc.server.utils.miniMessage
 import com.bluedragonmc.server.utils.surroundWithSeparators
 import net.kyori.adventure.text.Component
 import net.minestom.server.MinecraftServer
@@ -48,12 +49,24 @@ class AsymmetricTeamsModule(val seekersTeam: TeamModule.Team, val hidersTeam: Te
             parent.getModule<TeamModule>().teams.add(hidersTeam)
             hidersTeam.players.forEach { player ->
                 parent.callEvent(TeamAssignedEvent(parent, player))
-                player.sendMessage("You are a Hider! Avoid the Seekers, or try to fight back!")
+                player.sendMessage(miniMessage.deserialize("""
+                    <gray>· <p2>You are a <green>Hider<p2>! Avoid the <red>Seekers<p2>, or try to fight back!
+                    
+                    <gray>· <red>Seekers <p2>can walk through colored blocks by holding the corresponding color, making them appear half-sized.
+                    
+                    <gray>· <yellow>Right click <p2>the Scaffolding in your hotbar to disguise yourself as a block. <green>Good luck!
+                """.trimIndent()).surroundWithSeparators())
                 player.getAttribute(Attribute.GENERIC_MAX_HEALTH).baseValue = 10.0
             }
-            seekersTeam.players.forEach {
-                player -> parent.callEvent(TeamAssignedEvent(parent, player))
-                player.sendMessage("You are a Seeker! Use your colors to track down and kill the Hiders!")
+            seekersTeam.players.forEach { player ->
+                parent.callEvent(TeamAssignedEvent(parent, player))
+                player.sendMessage(miniMessage.deserialize("""
+                    <gray>· <p2>You are a <red>Seeker<p2>! <rainbow>Use your colors</rainbow><p2> to track down the <green>Hiders!
+                    
+                    <gray>· <green>Hiders <p2>can disguise themselves as a block, allowing them to blend in with their surroundings.
+                    
+                    <gray>· <yellow>Hold <p2>a color in your hotbar to <yellow>hide <p2>nearby blocks of that color, revealing any disguised hiders. <green>Good luck!
+                """.trimIndent()).surroundWithSeparators())
             }
             hidersTeam.register()
             seekersTeam.register()

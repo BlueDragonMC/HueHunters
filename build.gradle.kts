@@ -16,6 +16,7 @@ dependencies {
     implementation("com.github.BlueDragonMC.Server:common:f7bd8bdec9") {
         exclude(group = "org.tinylog")
     }
+    implementation("net.kyori:adventure-text-minimessage:4.11.0")
     implementation("net.minestom:minestom-snapshots:461c56e749")
     implementation("org.spongepowered:configurate-yaml:4.1.2")
 
