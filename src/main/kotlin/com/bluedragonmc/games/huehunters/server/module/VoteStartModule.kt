@@ -125,7 +125,7 @@ class VoteStartModule : GameModule() {
     private var countdown: Int? = null
 
     private fun update() {
-        if (parent.players.size >= 2 && votes.size >= parent.players.size / 2) {
+        if (parent.players.size >= 2 && votes.size >= parent.players.size / 2f) {
             startCountdown()
         } else if (countdown != null) {
             cancelCountdown()
