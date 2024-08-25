@@ -14,8 +14,12 @@ class StartCommand(name: String) : BlueDragonCommand(name = name, block = {
             player.sendMessage(Component.text("You are not in a game", NamedTextColor.RED))
             return@syntax
         }
-        game.state = GameState.INGAME
-        game.callEvent(GameStartEvent(game))
-        sender.sendMessage(Component.text("Game started successfully", NamedTextColor.GREEN))
+        if (game.state == GameState.WAITING || game.state == GameState.STARTING) {
+            game.state = GameState.INGAME
+            game.callEvent(GameStartEvent(game))
+            sender.sendMessage(Component.text("Game started successfully", NamedTextColor.GREEN))
+        } else {
+            sender.sendMessage(Component.text("This game has already been started!", NamedTextColor.RED))
+        }
     }
 })
